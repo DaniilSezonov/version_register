@@ -1,5 +1,5 @@
 import {findUpdateTypePart} from "./messageParser";
-import {Project, UpdateType} from "./models";
+import {Branch, Project, UpdateType} from "./models";
 import {ParsedArgs} from "./index";
 import {ProjectRegistry} from "./registry";
 
@@ -26,8 +26,9 @@ export function update(commandData: ParsedArgs): ProjectRegistry {
   }
   const project = registry.getById(commandData.projectId || "");
   if (!project) {
+    console.log(`Project with id ${commandData.projectId} does not exist.`);
     throw new Error(
-      `Project with id ${commandData.projectId} does not exist.`
+      "Project with selected id does not exist."
     );
   }
   const branch = project.getBranch(commandData.branchName || "");
@@ -40,10 +41,11 @@ export function update(commandData: ParsedArgs): ProjectRegistry {
   return registry;
 }
 
-export function create(commandData: ParsedArgs): ProjectRegistry {
+export function create<T extends Project | Branch>(commandData: ParsedArgs): [ProjectRegistry, T] {
   const registry = new ProjectRegistry();
+  let newItem: Branch | Project;
   if (commandData.projectName && commandData.branchName && commandData.startWithVersion) {
-    const newProject = new Project({
+    newItem = new Project({
       name: commandData.projectName,
       branches: [{
         name: commandData.branchName,
@@ -53,14 +55,18 @@ export function create(commandData: ParsedArgs): ProjectRegistry {
         }
       }]
     });
-    registry.add(newProject);
+    registry.add(newItem);
     registry.save();
-    return registry
-  }
-  if (commandData.projectId && commandData.branchName && commandData.fromBranch) {
+  } else if (commandData.projectId && commandData.branchName && commandData.fromBranch) {
     const project = registry.getById(commandData.projectId);
-    project?.newBranch(commandData.branchName, commandData.fromBranch);
-    return registry;
+    if (!project) {
+      console.log(`Not found project with id ${commandData.projectId}`)
+      throw new Error("Not found project with selected id");
+    } else {
+      newItem = project.newBranch(commandData.branchName, commandData.fromBranch);
+    }
+  } else {
+    throw Error("Wrong arguments for command create");
   }
-  throw Error("Wrong arguments for command create");
+  return [registry, newItem] as [ProjectRegistry, T];
 }

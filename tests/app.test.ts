@@ -61,7 +61,7 @@ function verify_branch_history(dataDir: string, branch: Branch) {
 }
 
 describe("Create Application", () => {
-  config.dataDir = "app.test_DataDir";
+  config.dataDir = "test.dataDir";
   afterEach(() => {
     fs.rmdirSync(path.join(config.dataDir), {recursive: true});
   });
@@ -72,7 +72,7 @@ describe("Create Application", () => {
       startWithVersion: "1.0.0",
       commandType: "create",
     };
-    const currentRegistry = create(commandParams);
+    const [currentRegistry, newItem] = create(commandParams);
     verify_project_store(config.dataDir, currentRegistry);
     for (const item of currentRegistry.all()) {
       for (const branch of item.branches) {
@@ -100,7 +100,8 @@ describe("Create Application", () => {
       fromBranch: project.branches[0].name,
       commandType: "create"
     }
-    registry = create(commandParams);
+    let newItem: Branch;
+    [registry, newItem] = create<Branch>(commandParams);
     /// todo глупо но работает, а вообще синхронный код оказался не синхронным
     setTimeout(() => {
       verify_project_store(config.dataDir, registry);

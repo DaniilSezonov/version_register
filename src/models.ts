@@ -51,18 +51,18 @@ export class Project {
     })
   }
 
-  newBranch(name: string, from: string): void {
+  newBranch(name: string, from: string): Branch {
     const fromBranch = this.branches.find(branch => branch.name === from);
     if (!fromBranch) {
       throw new Error(`Branch with branch ${from} does not exist in project ${this.name}`);
     }
-    this.createBranch({
+    return this.createBranch({
       name: name,
       version: {
         value: [fromBranch.version.major, fromBranch.version.minor, fromBranch.version.path],
         date: fromBranch.version.date.toJSON(),
       },
-    })
+    });
   }
 
   getBranch(name: string): Branch | undefined {
@@ -77,12 +77,13 @@ export class Project {
     branch.update(type);
   }
 
-  private createBranch(data: BranchData): void {
+  private createBranch(data: BranchData): Branch {
     const newBranch = new Branch({
       name: data.name,
       version: data.version,
     });
     this.addBranch(newBranch);
+    return newBranch;
   }
 
   addBranch(branch: Branch): void {

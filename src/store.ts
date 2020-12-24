@@ -52,7 +52,7 @@ export function loadProjects(dataDir: string): Project[] {
     const content = fs.readFileSync(path.resolve(dataDir, ProjectsStoreFileName), "utf8");
     json = JSON.parse(content);
   } catch (error) {
-    console.log(`${ProjectsStoreFileName} does not exists. It will create.`)
+    console.log(`${ProjectsStoreFileName} does not exists. It has been created.`)
     fs.writeFileSync(path.resolve(dataDir, ProjectsStoreFileName), JSON.stringify({}));
   }
   for (const [id, project] of Object.entries(json)) {
@@ -70,7 +70,8 @@ export function saveBranchHistory(branch: Branch, dataDir: string): void {
   let prevHistoryFile = null;
   for (const historyFileName of historyDir) {
     if (prevHistoryFile && historyFileName === branch.id) {
-      throw new Error(`Multiple history file with same names ${historyFileName}`)
+      console.log("\x1b[31m", `Multiple history file with same names ${historyFileName}`);
+      throw new Error(`Multiple history file with same names`);
     }
     prevHistoryFile = historyFileName === branch.id ? historyFileName : prevHistoryFile ||  null;
   }

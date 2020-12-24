@@ -49,7 +49,7 @@ describe('Project Model', () => {
 
 
 describe("Registry", () => {
-  config.dataDir = "mockDataDir";
+  config.dataDir = "test.dataDir";
   test('Save/Load', () => {
     const initVersion: [number, number, number] = [1, 0, 0];
     const branchId = "testbranchid";

@@ -1,4 +1,5 @@
 import {create, update} from "./commands";
+import {Branch, Project} from "./models";
 
 const CreateTypeArg = "create";
 const UpdateTypeArg = "update";
@@ -129,9 +130,16 @@ const parseArgs = (argv: string[]) => {
 const commandData = parseArgs(process.argv);
 
 switch (commandData.commandType) {
-  case "create":
-    create(commandData);
+  case "create": {
+    const [registry, createdElement] = create(commandData);
+    if (createdElement instanceof Project) {
+      console.log(`New project has been created with id: \n${createdElement.id}`)
+    }
+    if (createdElement instanceof Branch) {
+      console.log(`New branch has been created with id: \n${createdElement.id}`)
+    }
     break;
+  }
   case "update":
     update(commandData);
     break;
