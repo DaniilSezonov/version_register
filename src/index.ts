@@ -96,9 +96,8 @@ export interface ParsedArgs {
   commandType: CommandTypes;
 }
 
-const raiseParsingError = (): ParsedArgs => {
-  console.log("Wrong arguments of command. Available and required args is --commit-msg and --commit-sha");
-  throw new Error("Wrong arguments of command.")
+const raiseParsingError = () => {
+  console.log("Wrong command. Please select from options 'create' or 'update'.");
 }
 const parseArgs = (argv: string[]) => {
   const parsedArgs: ParsedArgs | Record<string, any> = {};
@@ -129,20 +128,24 @@ const parseArgs = (argv: string[]) => {
 
 const commandData = parseArgs(process.argv);
 
-switch (commandData.commandType) {
-  case "create": {
-    const [registry, createdElement] = create(commandData);
-    if (createdElement instanceof Project) {
-      console.log(`New project has been created with id: \n${createdElement.id}`)
+try {
+  switch (commandData.commandType) {
+    case "create": {
+      const [registry, createdElement] = create(commandData);
+      if (createdElement instanceof Project) {
+        console.log(`New project has been created with id: \n${createdElement.id}`)
+      }
+      if (createdElement instanceof Branch) {
+        console.log(`New branch has been created with id: \n${createdElement.id}`)
+      }
+      break;
     }
-    if (createdElement instanceof Branch) {
-      console.log(`New branch has been created with id: \n${createdElement.id}`)
-    }
-    break;
+    case "update":
+      update(commandData);
+      break;
+    default:
+      throw new Error("Please select create or update command option.")
   }
-  case "update":
-    update(commandData);
-    break;
-  default:
-    throw new Error("Please select create or update command option.")
+} catch(error) {
+  console.log("\x1b[31m", error);
 }

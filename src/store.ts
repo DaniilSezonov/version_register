@@ -13,12 +13,22 @@ export function checkDataDirectory(): void {
   try {
     fs.readdirSync(config.dataDir);
   } catch (error) {
-    console.log("Data directory does not exists. Creating directory...")
+    console.log("Data directory does not exists. Creating data...")
     fs.mkdirSync(config.dataDir, DataDirectoryPermission);
-    fs.mkdirSync(path.join(config.dataDir, HistoryPath), DataDirectoryPermission);
     console.log(`
             Data directory created successful./n 
             Name: ${config.dataDir} /n
+            Permission: ${DataDirectoryPermission}
+        `);
+  }
+  try {
+    fs.readdirSync(path.join(config.dataDir, HistoryPath));
+  } catch (error) {
+    console.log("History directory does not exists. Creating history...")
+    fs.mkdirSync(path.join(config.dataDir, HistoryPath), DataDirectoryPermission);
+    console.log(`
+            History directory created successful./n 
+            Name: ${path.join(config.dataDir, HistoryPath)} /n
             Permission: ${DataDirectoryPermission}
         `);
   }

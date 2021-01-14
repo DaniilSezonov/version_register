@@ -3,10 +3,16 @@ version: '3.7'
 services:
   app:
     image: version_register:latest
-    build: .
     volumes:
-      - version-register-data:/app/data:rw
-
-volumes:
-  version-register-data:
-    external: true
+      - $PERSISTENT_DATA:/app/data/:rw
+    deploy:
+      mode: global
+      restart_policy:
+        condition: none
+      update_config:
+        order: stop-first
+        failure_action: continue
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "500k"

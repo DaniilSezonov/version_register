@@ -66,7 +66,7 @@ export function create<T extends Project | Branch>(commandData: ParsedArgs): [Pr
       newItem = project.newBranch(commandData.branchName, commandData.fromBranch);
     }
   } else {
-    throw Error("Wrong arguments for command create");
+    throw Error("Wrong arguments for command create.");
   }
   return [registry, newItem] as [ProjectRegistry, T];
 }
