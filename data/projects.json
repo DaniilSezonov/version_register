@@ -1,0 +1,19 @@
+{
+    "d9249437-d69c-48cc-81fb-25b5f765d2f7": {
+        "name": "version-register",
+        "branches": [
+            {
+                "id": "3486e704-32f5-496f-955b-befb183de82f",
+                "name": "master",
+                "version": {
+                    "value": [
+                        0,
+                        0,
+                        1
+                    ],
+                    "date": "2021-01-14T15:27:34.409Z"
+                }
+            }
+        ]
+    }
+}

@@ -1,5 +1,5 @@
 import {findUpdateTypePart} from "./messageParser";
-import {Branch, Project, UpdateType} from "./models";
+import {Branch, Project, UpdateType, Version} from "./models";
 import {ParsedArgs} from "./index";
 import {ProjectRegistry} from "./registry";
 
@@ -69,4 +69,17 @@ export function create<T extends Project | Branch>(commandData: ParsedArgs): [Pr
     throw Error("Wrong arguments for command create.");
   }
   return [registry, newItem] as [ProjectRegistry, T];
+}
+
+export function read(commandData: ParsedArgs): Version | Project[] | undefined {
+  const registry = new ProjectRegistry();
+  if (commandData.projectId && commandData.branchName) {
+    const project = registry.getById(commandData.projectId);
+    const branch = project?.getBranch(commandData.branchName);
+    if (branch) {
+      return branch.version;
+    }
+    else return undefined;
+  }
+  return registry.all()
 }

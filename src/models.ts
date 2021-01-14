@@ -151,6 +151,9 @@ export class Version {
     [this.major, this.minor, this.path] = data.value;
     this.date = new Date(data.date);
   }
+  toString() {
+    return `${this.major}.${this.minor}.${this.path}`;
+  }
 }
 
 function createUUID() {

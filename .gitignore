@@ -1,6 +1,4 @@
 ./dist
-./data
-./data/*
 ./node_modules
 .idea
 .idea/*

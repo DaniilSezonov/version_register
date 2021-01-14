@@ -1,9 +1,11 @@
-import {create, update} from "./commands";
-import {Branch, Project} from "./models";
+import {create, update, read} from "./commands";
+import {Branch, Project, Version} from "./models";
 
 const CreateTypeArg = "create";
 const UpdateTypeArg = "update";
-type CommandTypes = typeof CreateTypeArg | typeof UpdateTypeArg;
+const ReadTypeArg = "read";
+
+type CommandTypes = typeof CreateTypeArg | typeof UpdateTypeArg | typeof ReadTypeArg;
 
 const CommitMsgParam = "--commit-msg";
 // const CommitShaParam = "--commit-sha";
@@ -103,7 +105,7 @@ const parseArgs = (argv: string[]) => {
   const parsedArgs: ParsedArgs | Record<string, any> = {};
   const commandArgs = argv.slice(3);
   const commandTypeArg = argv[2] as CommandTypes;
-  if (!(commandTypeArg === CreateTypeArg || commandTypeArg === UpdateTypeArg)) {
+  if (!(commandTypeArg === CreateTypeArg || commandTypeArg === UpdateTypeArg || commandTypeArg === ReadTypeArg)) {
     raiseParsingError();
   } else {
     parsedArgs["commandType"] = commandTypeArg;
@@ -143,7 +145,15 @@ try {
     case "update":
       update(commandData);
       break;
-    default:
+    case "read": {
+      const result = read(commandData);
+      if (Array.isArray(result)) {
+        console.log(JSON.stringify(result, undefined, " "));
+      } else if (result instanceof Version) {
+        console.log(result.toString())
+      }
+      break;
+    } default:
       throw new Error("Please select create or update command option.")
   }
 } catch(error) {
