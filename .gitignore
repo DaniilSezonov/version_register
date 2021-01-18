@@ -1,4 +1,7 @@
-./dist
-./node_modules
-.idea
-.idea/*
+node_modules
+dist/
+node_modules/
+idea/
+idea/*
+vscode/
+.env

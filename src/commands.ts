@@ -2,6 +2,8 @@ import {findUpdateTypePart} from "./messageParser";
 import {Branch, Project, UpdateType, Version} from "./models";
 import {ParsedArgs} from "./index";
 import {ProjectRegistry} from "./registry";
+import config from "./config";
+import GitlabTagService from "./services/tagService";
 
 function parseVersionParam(version: string) {
   return version.split(".").map(el => Number(el)) as [number, number, number];
@@ -38,6 +40,14 @@ export function update(commandData: ParsedArgs): ProjectRegistry {
     throw new Error("Branch does not exists");
   }
   registry.save();
+  if (config.gitlabProjectId && config.gitlabSecret) {
+    const tagService = new GitlabTagService(config.gitlabApiURI, config.gitlabSecret);
+    tagService.create({
+      id: config.gitlabProjectId,
+      tag_name: branch.version.toString(),
+      ref: branch.name,
+    })
+  }
   return registry;
 }
 
@@ -64,6 +74,7 @@ export function create<T extends Project | Branch>(commandData: ParsedArgs): [Pr
       throw new Error("Not found project with selected id");
     } else {
       newItem = project.newBranch(commandData.branchName, commandData.fromBranch);
+      registry.save();
     }
   } else {
     throw Error("Wrong arguments for command create.");

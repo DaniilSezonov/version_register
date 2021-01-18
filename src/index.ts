@@ -159,3 +159,4 @@ try {
 } catch(error) {
   console.log("\x1b[31m", error);
 }
+require("./config");
