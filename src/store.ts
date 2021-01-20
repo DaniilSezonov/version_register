@@ -39,6 +39,7 @@ export function saveProjects(projects: IterableIterator<Project>, dataDir: strin
   for (const project of projects) {
     out[project.id] = {
       name: project.name,
+      gitlabProjectId: project.gitlabProjectId,
       branches: project.branches.map(branch => {
         return {
           id: branch.id,
