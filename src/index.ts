@@ -99,7 +99,7 @@ export interface ParsedArgs {
 }
 
 const raiseParsingError = () => {
-  console.log("Wrong command. Please select from options 'create' or 'update'.");
+  console.log("Wrong command. Please select from options 'create', 'update', 'read'.");
 }
 const parseArgs = (argv: string[]) => {
   const parsedArgs: ParsedArgs | Record<string, any> = {};

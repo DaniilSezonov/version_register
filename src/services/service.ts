@@ -3,7 +3,8 @@ import axios, { AxiosInstance, AxiosResponse } from "axios";
 export type APIResponse<R> = Promise<AxiosResponse<R>>;
 export type APIAttrs = any;
 
-export default class RestAPIService {  
+export default class RestAPIService {
+    // Какая-то хуета и бред)
     protected requester: AxiosInstance;
     protected path?: string;
     constructor(baseUrl: string, apiToken: string) {

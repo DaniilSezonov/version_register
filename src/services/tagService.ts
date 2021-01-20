@@ -1,4 +1,3 @@
-import config from "../config";
 import RestAPIService, { APIAttrs, APIResponse } from "./service";
 
 interface GitlabTagData {
@@ -10,7 +9,7 @@ interface GitlabTagData {
         short_id: string,
         title: string,
         created_at: string,
-        parrent_ids: string[],
+        parent_ids: string[],
         message: string,
         author_name: string,
         author_email: string,
@@ -19,7 +18,7 @@ interface GitlabTagData {
         commiter_email: string,
         commited_data: string,
     },
-    realse?: {
+    release?: {
         tag_name: string,
         description: string,
     }
@@ -35,15 +34,20 @@ interface GitlabTagAttrs extends APIAttrs {
 }
 
 export default class GitlabTagService extends RestAPIService {
-    path = `/projects/${config.gitlabProjectId}/repository/tags`;
-    async read() {
-        return this.requester.get<GitlabTagData>(this.path);
-    };
+    // async read() {
+    //     return this.requester.get<GitlabTagData>(this.path);
+    // }
     async create(attrs: GitlabTagAttrs): APIResponse<GitlabTagData> {
-        const response = await this.requester.post<GitlabTagData>(this.path, {params: attrs});
+        const path = this.getPath(attrs.id);
+        const response = await this.requester.post<GitlabTagData>(path, {params: attrs});
         if (response.status == 201) {
-            console.log(`Tagging was finished succesfully. Branch: ${response.data.target}`)
+            console.log(`Tagging was finished successfully. Branch: ${response.data.target}`)
+        } else {
+            throw new Error(`Tagging service error. status code = ${response.status}`);
         }
         return response;
-    };
+    }
+    getPath(projectId: string): string {
+        return `/projects/${projectId}/repository/tag`;
+    }
 }

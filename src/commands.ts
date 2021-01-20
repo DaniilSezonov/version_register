@@ -4,10 +4,8 @@ import {ParsedArgs} from "./index";
 import {ProjectRegistry} from "./registry";
 import config from "./config";
 import GitlabTagService from "./services/tagService";
+import {defaultConfig} from "./constants";
 
-function parseVersionParam(version: string) {
-  return version.split(".").map(el => Number(el)) as [number, number, number];
-}
 
 export function update(commandData: ParsedArgs): ProjectRegistry {
   const registry = new ProjectRegistry();
@@ -40,13 +38,8 @@ export function update(commandData: ParsedArgs): ProjectRegistry {
     throw new Error("Branch does not exists");
   }
   registry.save();
-  if (config.gitlabProjectId && config.gitlabSecret) {
-    const tagService = new GitlabTagService(config.gitlabApiURI, config.gitlabSecret);
-    tagService.create({
-      id: config.gitlabProjectId,
-      tag_name: branch.version.toString(),
-      ref: branch.name,
-    })
+  if (isActiveTagging()) {
+    sendTag(project, branch);
   }
   return registry;
 }
@@ -55,7 +48,7 @@ export function create<T extends Project | Branch>(commandData: ParsedArgs): [Pr
   const registry = new ProjectRegistry();
   let newItem: Branch | Project;
   if (commandData.projectName && commandData.branchName && commandData.startWithVersion) {
-    newItem = new Project({
+    const newProject = new Project({
       name: commandData.projectName,
       branches: [{
         name: commandData.branchName,
@@ -65,16 +58,28 @@ export function create<T extends Project | Branch>(commandData: ParsedArgs): [Pr
         }
       }]
     });
-    registry.add(newItem);
+    registry.add(newProject);
     registry.save();
+    const newBranch = newProject.getBranch(commandData.branchName)
+    if (isActiveTagging() && newBranch) {
+      sendTag(
+        newProject,
+        newBranch
+      )
+    }
+    newItem = newProject;
   } else if (commandData.projectId && commandData.branchName && commandData.fromBranch) {
     const project = registry.getById(commandData.projectId);
     if (!project) {
       console.log(`Not found project with id ${commandData.projectId}`)
       throw new Error("Not found project with selected id");
     } else {
-      newItem = project.newBranch(commandData.branchName, commandData.fromBranch);
+      const newBranch = project.newBranch(commandData.branchName, commandData.fromBranch);
       registry.save();
+      if (isActiveTagging()) {
+         sendTag(project, newBranch);
+      }
+      newItem = newBranch;
     }
   } else {
     throw Error("Wrong arguments for command create.");
@@ -93,4 +98,27 @@ export function read(commandData: ParsedArgs): Version | Project[] | undefined {
     else return undefined;
   }
   return registry.all()
+}
+
+function parseVersionParam(version: string) {
+  return version.split(".").map(el => Number(el)) as [number, number, number];
+}
+
+function isActiveTagging() {
+  return config.gitlabSecret !== defaultConfig.gitlabSecret;
+}
+
+function sendTag(project: Project, branch: Branch) {
+  if (!project.gitlabProjectId) {
+    throw new Error(
+      `gitlabSecret was found but gitlabProjectId is
+       not set for project ${project.name}`
+    );
+  }
+  const tagService = new GitlabTagService(config.gitlabApiURI, config.gitlabSecret);
+  tagService.create({
+    id: project.gitlabProjectId,
+    tag_name: branch.version.toString(),
+    ref: branch.name,
+  })
 }

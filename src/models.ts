@@ -13,6 +13,7 @@ export interface BranchHistory {
 
 export interface ProjectData {
   id?: string;
+  gitlabProjectId?: string;
   name: string;
   branches: BranchData[];
 }
@@ -38,10 +39,12 @@ export class Project {
   id: string;
   name: string;
   branches: Branch[] = [];
+  gitlabProjectId?: string;
 
   constructor(data: ProjectData) {
     this.id = data.id ? data.id : createUUID();
     this.name = data.name;
+    this.gitlabProjectId = data.gitlabProjectId;
     data.branches.map(branch => {
       this.branches = this.branches.concat(new Branch({
         id: branch.id,
