@@ -11,19 +11,6 @@ export function update(commandData: ParsedArgs): ProjectRegistry {
   const registry = new ProjectRegistry();
   const updateTypePart = findUpdateTypePart(commandData?.commitMsg || "");
   let updateType: UpdateType;
-  switch (updateTypePart) {
-    case "MAJOR":
-      updateType = UpdateType.Major;
-      break;
-    case "MINOR":
-      updateType = UpdateType.Minor;
-      break;
-    case "PATCH":
-      updateType = UpdateType.Path;
-      break;
-    default:
-      throw new Error("Cant find update type pattern in commit message.")
-  }
   const project = registry.getById(commandData.projectId || "");
   if (!project) {
     console.log(`Project with id ${commandData.projectId} does not exist.`);
@@ -31,16 +18,33 @@ export function update(commandData: ParsedArgs): ProjectRegistry {
       "Project with selected id does not exist."
     );
   }
-  const branch = project.getBranch(commandData.branchName || "");
-  if (branch) {
-    project.update(updateType, branch.id);
-  } else {
-    throw new Error("Branch does not exists");
+  if (commandData.branchName) {
+    const branch = project.getBranch(commandData.branchName || "");
+    switch (updateTypePart) {
+      case "MAJOR":
+        updateType = UpdateType.Major;
+        break;
+      case "MINOR":
+        updateType = UpdateType.Minor;
+        break;
+      case "PATCH":
+        updateType = UpdateType.Path;
+        break;
+      default:
+        throw new Error("Cant find update type pattern in commit message.")
+    }
+    if (branch) {
+      project.update(updateType, branch.id);
+    } else {
+      throw new Error("Branch does not exists");
+    }
+    if (isActiveTagging()) {
+      sendTag(project, branch);
+    }
+  } else if (commandData.gitlabId) {
+    project.gitlabProjectId = commandData.gitlabId;
   }
   registry.save();
-  if (isActiveTagging()) {
-    sendTag(project, branch);
-  }
   return registry;
 }
 
@@ -56,7 +60,8 @@ export function create<T extends Project | Branch>(commandData: ParsedArgs): [Pr
           value: parseVersionParam(commandData.startWithVersion),
           date: new Date().toJSON(),
         }
-      }]
+      }],
+      gitlabProjectId: commandData.gitlabId,
     });
     registry.add(newProject);
     registry.save();
@@ -77,7 +82,7 @@ export function create<T extends Project | Branch>(commandData: ParsedArgs): [Pr
       const newBranch = project.newBranch(commandData.branchName, commandData.fromBranch);
       registry.save();
       if (isActiveTagging()) {
-         sendTag(project, newBranch);
+        sendTag(project, newBranch);
       }
       newItem = newBranch;
     }
@@ -105,6 +110,7 @@ function parseVersionParam(version: string) {
 }
 
 function isActiveTagging() {
+  console.log(config.gitlabSecret);
   return config.gitlabSecret !== defaultConfig.gitlabSecret;
 }
 

@@ -66,11 +66,12 @@ export function loadProjects(dataDir: string): Project[] {
     console.log(`${ProjectsStoreFileName} does not exists. It has been created.`)
     fs.writeFileSync(path.resolve(dataDir, ProjectsStoreFileName), JSON.stringify({}));
   }
-  for (const [id, project] of Object.entries(json)) {
+  for (const [id, projectData] of Object.entries(json)) {
     result = result.concat(new Project({
       id,
-      name: project.name,
-      branches: project.branches
+      name: projectData.name,
+      branches: projectData.branches,
+      gitlabProjectId: projectData.gitlabProjectId
     }))
   }
   return result;

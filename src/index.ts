@@ -13,7 +13,8 @@ const ProjectNameParam = "--project-name";
 const ProjectIdParam = "--project-id";
 const BranchNameParam = "--branch-name";
 const StartWithParam = "--init-version"
-const FromBranchPram = "--from";
+const FromBranchParam = "--from";
+const GitlabProjectIdParam = "--gitlab-id";
 
 type AvailableParams =
   typeof CommitMsgParam |
@@ -21,20 +22,23 @@ type AvailableParams =
   typeof ProjectIdParam |
   typeof BranchNameParam |
   typeof ProjectNameParam |
-  typeof FromBranchPram |
-  typeof StartWithParam;
+  typeof FromBranchParam |
+  typeof StartWithParam |
+  typeof GitlabProjectIdParam;
 
 const CreateAvailableParams: AvailableParams[] = [
   ProjectNameParam,
   BranchNameParam,
   // CommitShaParam,
   StartWithParam,
-  FromBranchPram
+  FromBranchParam,
+  GitlabProjectIdParam
 ];
 
 const UpdateAvailableParams: AvailableParams[] = [
   CommitMsgParam,
   ProjectIdParam,
+  GitlabProjectIdParam
 ]
 
 const CommitMsgKey = "commitMsg";
@@ -44,6 +48,7 @@ const BranchNameKey = "branchName";
 const FromBranchKey = "fromBranch";
 const ProjectNameKey = "projectName";
 const StartWithKey = "startWithVersion";
+const GitlabProjectIdKey = "gitlabId";
 
 type AvailableKeys =
   typeof CommitMsgKey |
@@ -52,7 +57,8 @@ type AvailableKeys =
   typeof BranchNameKey |
   typeof ProjectNameKey |
   typeof FromBranchKey |
-  typeof StartWithKey;
+  typeof StartWithKey |
+  typeof GitlabProjectIdKey;
 
 const ParamToKeyMapping = new Map<AvailableParams, AvailableKeys>(
   [
@@ -77,8 +83,12 @@ const ParamToKeyMapping = new Map<AvailableParams, AvailableKeys>(
       StartWithKey
     ],
     [
-      FromBranchPram,
+      FromBranchParam,
       FromBranchKey,
+    ],
+    [
+      GitlabProjectIdParam,
+      GitlabProjectIdKey,
     ]
     // [
     //     CommitShaParam,
@@ -96,6 +106,7 @@ export interface ParsedArgs {
   startWithVersion?: string;
   fromBranch?: string;
   commandType: CommandTypes;
+  gitlabId?: string;
 }
 
 const raiseParsingError = () => {
@@ -159,4 +170,3 @@ try {
 } catch(error) {
   console.log("\x1b[31m", error);
 }
-require("./config");
