@@ -1,8 +1,11 @@
-import {create, update} from "./commands";
+import {create, update, read} from "./commands";
+import {Branch, Project, Version} from "./models";
 
 const CreateTypeArg = "create";
 const UpdateTypeArg = "update";
-type CommandTypes = typeof CreateTypeArg | typeof UpdateTypeArg;
+const ReadTypeArg = "read";
+
+type CommandTypes = typeof CreateTypeArg | typeof UpdateTypeArg | typeof ReadTypeArg;
 
 const CommitMsgParam = "--commit-msg";
 // const CommitShaParam = "--commit-sha";
@@ -10,7 +13,8 @@ const ProjectNameParam = "--project-name";
 const ProjectIdParam = "--project-id";
 const BranchNameParam = "--branch-name";
 const StartWithParam = "--init-version"
-const FromBranchPram = "--from";
+const FromBranchParam = "--from";
+const GitlabProjectIdParam = "--gitlab-id";
 
 type AvailableParams =
   typeof CommitMsgParam |
@@ -18,20 +22,23 @@ type AvailableParams =
   typeof ProjectIdParam |
   typeof BranchNameParam |
   typeof ProjectNameParam |
-  typeof FromBranchPram |
-  typeof StartWithParam;
+  typeof FromBranchParam |
+  typeof StartWithParam |
+  typeof GitlabProjectIdParam;
 
 const CreateAvailableParams: AvailableParams[] = [
   ProjectNameParam,
   BranchNameParam,
   // CommitShaParam,
   StartWithParam,
-  FromBranchPram
+  FromBranchParam,
+  GitlabProjectIdParam
 ];
 
 const UpdateAvailableParams: AvailableParams[] = [
   CommitMsgParam,
   ProjectIdParam,
+  GitlabProjectIdParam
 ]
 
 const CommitMsgKey = "commitMsg";
@@ -41,6 +48,7 @@ const BranchNameKey = "branchName";
 const FromBranchKey = "fromBranch";
 const ProjectNameKey = "projectName";
 const StartWithKey = "startWithVersion";
+const GitlabProjectIdKey = "gitlabId";
 
 type AvailableKeys =
   typeof CommitMsgKey |
@@ -49,7 +57,8 @@ type AvailableKeys =
   typeof BranchNameKey |
   typeof ProjectNameKey |
   typeof FromBranchKey |
-  typeof StartWithKey;
+  typeof StartWithKey |
+  typeof GitlabProjectIdKey;
 
 const ParamToKeyMapping = new Map<AvailableParams, AvailableKeys>(
   [
@@ -74,8 +83,12 @@ const ParamToKeyMapping = new Map<AvailableParams, AvailableKeys>(
       StartWithKey
     ],
     [
-      FromBranchPram,
+      FromBranchParam,
       FromBranchKey,
+    ],
+    [
+      GitlabProjectIdParam,
+      GitlabProjectIdKey,
     ]
     // [
     //     CommitShaParam,
@@ -93,17 +106,17 @@ export interface ParsedArgs {
   startWithVersion?: string;
   fromBranch?: string;
   commandType: CommandTypes;
+  gitlabId?: string;
 }
 
-const raiseParsingError = (): ParsedArgs => {
-  console.log("Wrong arguments of command. Available and required args is --commit-msg and --commit-sha");
-  throw new Error("Wrong arguments of command.")
+const raiseParsingError = () => {
+  console.log("Wrong command. Please select from options 'create', 'update', 'read'.");
 }
 const parseArgs = (argv: string[]) => {
   const parsedArgs: ParsedArgs | Record<string, any> = {};
   const commandArgs = argv.slice(3);
   const commandTypeArg = argv[2] as CommandTypes;
-  if (!(commandTypeArg === CreateTypeArg || commandTypeArg === UpdateTypeArg)) {
+  if (!(commandTypeArg === CreateTypeArg || commandTypeArg === UpdateTypeArg || commandTypeArg === ReadTypeArg)) {
     raiseParsingError();
   } else {
     parsedArgs["commandType"] = commandTypeArg;
@@ -128,13 +141,32 @@ const parseArgs = (argv: string[]) => {
 
 const commandData = parseArgs(process.argv);
 
-switch (commandData.commandType) {
-  case "create":
-    create(commandData);
-    break;
-  case "update":
-    update(commandData);
-    break;
-  default:
-    throw new Error("Please select create or update command option.")
+try {
+  switch (commandData.commandType) {
+    case "create": {
+      const [registry, createdElement] = create(commandData);
+      if (createdElement instanceof Project) {
+        console.log(`New project has been created with id: \n${createdElement.id}`)
+      }
+      if (createdElement instanceof Branch) {
+        console.log(`New branch has been created with id: \n${createdElement.id}`)
+      }
+      break;
+    }
+    case "update":
+      update(commandData);
+      break;
+    case "read": {
+      const result = read(commandData);
+      if (Array.isArray(result)) {
+        console.log(JSON.stringify(result, undefined, " "));
+      } else if (result instanceof Version) {
+        console.log(result.toString())
+      }
+      break;
+    } default:
+      throw new Error("Please select create or update command option.")
+  }
+} catch(error) {
+  console.log("\x1b[31m", error);
 }

@@ -13,12 +13,22 @@ export function checkDataDirectory(): void {
   try {
     fs.readdirSync(config.dataDir);
   } catch (error) {
-    console.log("Data directory does not exists. Creating directory...")
+    console.log("Data directory does not exists. Creating data...")
     fs.mkdirSync(config.dataDir, DataDirectoryPermission);
-    fs.mkdirSync(path.join(config.dataDir, HistoryPath), DataDirectoryPermission);
     console.log(`
             Data directory created successful./n 
             Name: ${config.dataDir} /n
+            Permission: ${DataDirectoryPermission}
+        `);
+  }
+  try {
+    fs.readdirSync(path.join(config.dataDir, HistoryPath));
+  } catch (error) {
+    console.log("History directory does not exists. Creating history...")
+    fs.mkdirSync(path.join(config.dataDir, HistoryPath), DataDirectoryPermission);
+    console.log(`
+            History directory created successful./n 
+            Name: ${path.join(config.dataDir, HistoryPath)} /n
             Permission: ${DataDirectoryPermission}
         `);
   }
@@ -29,6 +39,7 @@ export function saveProjects(projects: IterableIterator<Project>, dataDir: strin
   for (const project of projects) {
     out[project.id] = {
       name: project.name,
+      gitlabProjectId: project.gitlabProjectId,
       branches: project.branches.map(branch => {
         return {
           id: branch.id,
@@ -52,14 +63,15 @@ export function loadProjects(dataDir: string): Project[] {
     const content = fs.readFileSync(path.resolve(dataDir, ProjectsStoreFileName), "utf8");
     json = JSON.parse(content);
   } catch (error) {
-    console.log(`${ProjectsStoreFileName} does not exists. It will create.`)
+    console.log(`${ProjectsStoreFileName} does not exists. It has been created.`)
     fs.writeFileSync(path.resolve(dataDir, ProjectsStoreFileName), JSON.stringify({}));
   }
-  for (const [id, project] of Object.entries(json)) {
+  for (const [id, projectData] of Object.entries(json)) {
     result = result.concat(new Project({
       id,
-      name: project.name,
-      branches: project.branches
+      name: projectData.name,
+      branches: projectData.branches,
+      gitlabProjectId: projectData.gitlabProjectId
     }))
   }
   return result;
@@ -70,7 +82,8 @@ export function saveBranchHistory(branch: Branch, dataDir: string): void {
   let prevHistoryFile = null;
   for (const historyFileName of historyDir) {
     if (prevHistoryFile && historyFileName === branch.id) {
-      throw new Error(`Multiple history file with same names ${historyFileName}`)
+      console.log("\x1b[31m", `Multiple history file with same names ${historyFileName}`);
+      throw new Error(`Multiple history file with same names`);
     }
     prevHistoryFile = historyFileName === branch.id ? historyFileName : prevHistoryFile ||  null;
   }

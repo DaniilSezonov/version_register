@@ -1,0 +1,25 @@
+version: '3.7'
+
+services:
+  app:
+    image: $IMAGE
+    volumes:
+      - $PERSISTENT_DATA:/app/data/:rw
+    deploy:
+      mode: global
+      restart_policy:
+        condition: none
+      update_config:
+        order: stop-first
+        failure_action: continue
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "500k"
+    secrets:
+      - source: version_resiter_config
+        target: ./.env
+     
+secrets:
+  name: version_resiter_config
+  external: true

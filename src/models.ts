@@ -13,6 +13,7 @@ export interface BranchHistory {
 
 export interface ProjectData {
   id?: string;
+  gitlabProjectId?: string;
   name: string;
   branches: BranchData[];
 }
@@ -38,10 +39,12 @@ export class Project {
   id: string;
   name: string;
   branches: Branch[] = [];
+  gitlabProjectId?: string;
 
   constructor(data: ProjectData) {
     this.id = data.id ? data.id : createUUID();
     this.name = data.name;
+    this.gitlabProjectId = data.gitlabProjectId;
     data.branches.map(branch => {
       this.branches = this.branches.concat(new Branch({
         id: branch.id,
@@ -51,18 +54,18 @@ export class Project {
     })
   }
 
-  newBranch(name: string, from: string): void {
+  newBranch(name: string, from: string): Branch {
     const fromBranch = this.branches.find(branch => branch.name === from);
     if (!fromBranch) {
       throw new Error(`Branch with branch ${from} does not exist in project ${this.name}`);
     }
-    this.createBranch({
+    return this.createBranch({
       name: name,
       version: {
         value: [fromBranch.version.major, fromBranch.version.minor, fromBranch.version.path],
         date: fromBranch.version.date.toJSON(),
       },
-    })
+    });
   }
 
   getBranch(name: string): Branch | undefined {
@@ -77,12 +80,13 @@ export class Project {
     branch.update(type);
   }
 
-  private createBranch(data: BranchData): void {
+  private createBranch(data: BranchData): Branch {
     const newBranch = new Branch({
       name: data.name,
       version: data.version,
     });
     this.addBranch(newBranch);
+    return newBranch;
   }
 
   addBranch(branch: Branch): void {
@@ -149,6 +153,9 @@ export class Version {
   constructor(data: VersionData) {
     [this.major, this.minor, this.path] = data.value;
     this.date = new Date(data.date);
+  }
+  toString() {
+    return `${this.major}.${this.minor}.${this.path}`;
   }
 }
 
