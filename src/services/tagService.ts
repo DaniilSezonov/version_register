@@ -1,4 +1,5 @@
 import RestAPIService, { APIAttrs, APIResponse } from "./service";
+import {AxiosError} from "axios";
 
 interface GitlabTagData {
     name: string;
@@ -37,17 +38,16 @@ export default class GitlabTagService extends RestAPIService {
     // async read() {
     //     return this.requester.get<GitlabTagData>(this.path);
     // }
-    async create(attrs: GitlabTagAttrs): APIResponse<GitlabTagData> {
+    async create(attrs: GitlabTagAttrs) {
         const path = this.getPath(attrs.id);
-        const response = await this.requester.post<GitlabTagData>(path, {params: attrs});
-        if (response.status == 201) {
-            console.log(`Tagging was finished successfully. Branch: ${response.data.target}`)
-        } else {
-            throw new Error(`Tagging service error. status code = ${response.status}`);
+        try {
+            await this.requester.post<GitlabTagData>(path,null, {params: attrs});
+        } catch (error) {
+            console.log(error);
+            return error.response as APIResponse<GitlabTagData>;
         }
-        return response;
     }
     getPath(projectId: string): string {
-        return `/projects/${projectId}/repository/tag`;
+        return `/projects/${projectId}/repository/tags`;
     }
 }
