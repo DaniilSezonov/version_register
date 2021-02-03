@@ -72,12 +72,13 @@ export class Project {
     return this.branches.find(el => el.name === name);
   }
 
-  update(type: UpdateType, branchId: string): void {
+  update(type: UpdateType, branchId: string): Version {
     const branch = this.branches.find((el) => el.id == branchId);
     if (!branch) {
       throw Error("Project update failure. Wrong branchId value.")
     }
     branch.update(type);
+    return branch.version;
   }
 
   private createBranch(data: BranchData): Branch {
@@ -121,7 +122,7 @@ export class Branch {
     });
   }
 
-  update(type: UpdateType): void {
+  update(type: UpdateType): Version {
     let nextVersion: [number, number, number];
     switch (type) {
       case UpdateType.Major:
@@ -141,6 +142,7 @@ export class Branch {
       value: nextVersion,
       date: new Date().toJSON()
     });
+    return this.version;
   }
 }
 
