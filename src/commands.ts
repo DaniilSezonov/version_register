@@ -34,7 +34,8 @@ export function update(commandData: ParsedArgs): ProjectRegistry {
         throw new Error("Cant find update type pattern in commit message.")
     }
     if (branch) {
-      project.update(updateType, branch.id);
+      const newVersion = project.update(updateType, branch.id);
+      console.log(newVersion.toString());
     } else {
       throw new Error("Branch does not exists");
     }
@@ -110,7 +111,6 @@ function parseVersionParam(version: string) {
 }
 
 function isActiveTagging() {
-  console.log(config.gitlabSecret);
   return config.gitlabSecret !== defaultConfig.gitlabSecret;
 }
 

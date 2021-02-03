@@ -17,9 +17,10 @@ services:
       options:
         max-size: "500k"
     secrets:
-      - source: version_resiter_config
+      - source: versions_register_config
         target: ./.env
      
 secrets:
-  name: version_resiter_config
-  external: true
+  versions_register_config:
+    name: versions_register_config
+    external: true
