@@ -5,6 +5,7 @@ import {ProjectRegistry} from "./registry";
 import config from "./config";
 import GitlabTagService from "./services/tagService";
 import {defaultConfig} from "./constants";
+import {VersionRegisterError} from "./errors";
 
 
 export function update(commandData: ParsedArgs): ProjectRegistry {
@@ -13,9 +14,8 @@ export function update(commandData: ParsedArgs): ProjectRegistry {
   let updateType: UpdateType;
   const project = registry.getById(commandData.projectId || "");
   if (!project) {
-    console.log(`Project with id ${commandData.projectId} does not exist.`);
-    throw new Error(
-      "Project with selected id does not exist."
+    throw new VersionRegisterError(
+      `Project with id ${commandData.projectId} does not exist.`
     );
   }
   if (commandData.branchName) {
@@ -31,13 +31,13 @@ export function update(commandData: ParsedArgs): ProjectRegistry {
         updateType = UpdateType.Path;
         break;
       default:
-        throw new Error("Cant find update type pattern in commit message.")
+        throw new VersionRegisterError(`Project with id ${commandData.projectId} does not exist.`)
     }
     if (branch) {
       const newVersion = project.update(updateType, branch.id);
       console.log(newVersion.toString());
     } else {
-      throw new Error("Branch does not exists");
+      throw new VersionRegisterError("Branch does not exists");
     }
     if (isActiveTagging()) {
       sendTag(project, branch);
@@ -77,8 +77,7 @@ export function create<T extends Project | Branch>(commandData: ParsedArgs): [Pr
   } else if (commandData.projectId && commandData.branchName && commandData.fromBranch) {
     const project = registry.getById(commandData.projectId);
     if (!project) {
-      console.log(`Not found project with id ${commandData.projectId}`)
-      throw new Error("Not found project with selected id");
+      throw new VersionRegisterError(`Not found project with id ${commandData.projectId}`);
     } else {
       const newBranch = project.newBranch(commandData.branchName, commandData.fromBranch);
       registry.save();
@@ -88,7 +87,9 @@ export function create<T extends Project | Branch>(commandData: ParsedArgs): [Pr
       newItem = newBranch;
     }
   } else {
-    throw Error("Wrong arguments for command create.");
+    throw new VersionRegisterError(`
+      Wrong arguments for command create.
+    `);
   }
   return [registry, newItem] as [ProjectRegistry, T];
 }
@@ -116,7 +117,7 @@ function isActiveTagging() {
 
 function sendTag(project: Project, branch: Branch) {
   if (!project.gitlabProjectId) {
-    throw new Error(
+    throw new VersionRegisterError(
       `gitlabSecret was found but gitlabProjectId is
        not set for project ${project.name}`
     );

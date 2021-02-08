@@ -1,3 +1,5 @@
+import {ModelError} from "./errors";
+
 export interface HistoryItem {
   target: VersionData,
   previous: [number, number, number] | undefined
@@ -57,7 +59,10 @@ export class Project {
   newBranch(name: string, from: string): Branch {
     const fromBranch = this.branches.find(branch => branch.name === from);
     if (!fromBranch) {
-      throw new Error(`Branch with branch ${from} does not exist in project ${this.name}`);
+      throw new ModelError(
+        `Branch with branch ${from} does not exist in project ${this.name}`,
+        this.constructor.name
+      );
     }
     return this.createBranch({
       name: name,
@@ -75,7 +80,10 @@ export class Project {
   update(type: UpdateType, branchId: string): Version {
     const branch = this.branches.find((el) => el.id == branchId);
     if (!branch) {
-      throw Error("Project update failure. Wrong branchId value.")
+      throw new ModelError(
+        "Project update failure. Wrong branchId value.",
+        this.constructor.name
+      )
     }
     branch.update(type);
     return branch.version;
@@ -135,7 +143,7 @@ export class Branch {
         nextVersion = [this.version.major, this.version.minor, this.version.path + 1];
         break;
       default:
-        throw new Error("Wrong update type");
+        throw new ModelError("Wrong update type", this.constructor.name);
     }
     this.previousVersion = [this.version.major, this.version.minor, this.version.path];
     this.version = new Version({

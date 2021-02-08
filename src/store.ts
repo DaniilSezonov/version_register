@@ -3,6 +3,7 @@ import * as fs from "fs";
 import config from "./config";
 import * as path from "path";
 import {DataDirectoryPermission, HistoryPath, ProjectsStoreFileName} from "./constants";
+import {StoreError} from "./errors";
 
 
 export interface ProjectStore {
@@ -83,7 +84,7 @@ export function saveBranchHistory(branch: Branch, dataDir: string): void {
   for (const historyFileName of historyDir) {
     if (prevHistoryFile && historyFileName === branch.id) {
       console.log("\x1b[31m", `Multiple history file with same names ${historyFileName}`);
-      throw new Error(`Multiple history file with same names`);
+      throw new StoreError(`Multiple history file with same names`);
     }
     prevHistoryFile = historyFileName === branch.id ? historyFileName : prevHistoryFile ||  null;
   }
@@ -98,7 +99,7 @@ export function saveBranchHistory(branch: Branch, dataDir: string): void {
 
     } catch (error) {
       console.log("\x1b[31m", "Corrupted datafile! Several of the versions are missing.")
-      throw Error("Save history error");
+      throw new StoreError("Save history error");
     }
   }
   /// Creating new directory
@@ -146,7 +147,7 @@ function mergeHistory(history: BranchHistory, newHistoryItem: BranchHistory, new
     result[newVersion[0]][newVersion[1]][newVersion[2]] = newHistoryItem[newVersion[0]][newVersion[1]][newVersion[2]]
   } else {
     console.log("\x1b[31m", "Something was really wrong!")
-    throw new Error("New version already exist?")
+    throw new StoreError("New version already exist?")
   }
   return result;
 }

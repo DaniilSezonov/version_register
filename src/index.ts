@@ -1,11 +1,14 @@
 import {create, update, read} from "./commands";
 import {Branch, Project, Version} from "./models";
+import {CommandArgumentsError, CommandParsingError} from "./errors";
 
 const CreateTypeArg = "create";
 const UpdateTypeArg = "update";
 const ReadTypeArg = "read";
 
-type CommandTypes = typeof CreateTypeArg | typeof UpdateTypeArg | typeof ReadTypeArg;
+export const availableArgs = [CreateTypeArg, UpdateTypeArg, ReadTypeArg];
+
+export type CommandTypes = typeof CreateTypeArg | typeof UpdateTypeArg | typeof ReadTypeArg;
 
 const CommitMsgParam = "--commit-msg";
 // const CommitShaParam = "--commit-sha";
@@ -26,7 +29,7 @@ type AvailableParams =
   typeof StartWithParam |
   typeof GitlabProjectIdParam;
 
-const CreateAvailableParams: AvailableParams[] = [
+const CREATE_AVAILABLE_PARAMS: AvailableParams[] = [
   ProjectNameParam,
   BranchNameParam,
   // CommitShaParam,
@@ -35,7 +38,7 @@ const CreateAvailableParams: AvailableParams[] = [
   GitlabProjectIdParam
 ];
 
-const UpdateAvailableParams: AvailableParams[] = [
+export const UPDATE_AVAILABLE_PARAMS: AvailableParams[] = [
   CommitMsgParam,
   ProjectIdParam,
   GitlabProjectIdParam
@@ -50,6 +53,17 @@ const ProjectNameKey = "projectName";
 const StartWithKey = "startWithVersion";
 const GitlabProjectIdKey = "gitlabId";
 
+export interface ParsedArgs {
+  commitMsg?: string;
+  branchName?: string;
+  projectId?: string;
+  projectName?: string;
+  startWithVersion?: string;
+  fromBranch?: string;
+  commandType: CommandTypes;
+  gitlabId?: string;
+}
+
 type AvailableKeys =
   typeof CommitMsgKey |
   // typeof CommitShaKey |
@@ -60,7 +74,7 @@ type AvailableKeys =
   typeof StartWithKey |
   typeof GitlabProjectIdKey;
 
-const ParamToKeyMapping = new Map<AvailableParams, AvailableKeys>(
+const PARAM_TO_KEY_MAPPING = new Map<AvailableParams, AvailableKeys>(
   [
     [
       CommitMsgParam,
@@ -96,44 +110,36 @@ const ParamToKeyMapping = new Map<AvailableParams, AvailableKeys>(
     // ]
   ],
 );
-
-
-export interface ParsedArgs {
-  commitMsg?: string;
-  branchName?: string;
-  projectId?: string;
-  projectName?: string;
-  startWithVersion?: string;
-  fromBranch?: string;
-  commandType: CommandTypes;
-  gitlabId?: string;
-}
-
-const raiseParsingError = () => {
-  console.log("Wrong command. Please select from options 'create', 'update', 'read'.");
-}
-const parseArgs = (argv: string[]) => {
+const parseArgs = (args: string[]) => {
   const parsedArgs: ParsedArgs | Record<string, any> = {};
-  const commandArgs = argv.slice(3);
-  const commandTypeArg = argv[2] as CommandTypes;
-  if (!(commandTypeArg === CreateTypeArg || commandTypeArg === UpdateTypeArg || commandTypeArg === ReadTypeArg)) {
-    raiseParsingError();
+  const commandParams = args.slice(3);
+  const commandTypeArg = args[2];
+  if (availableArgs.findIndex(command=>command === commandTypeArg) === -1) {
+    throw new CommandParsingError(
+      "ParseCommandError",
+      commandTypeArg,
+      availableArgs
+    );
   } else {
-    parsedArgs["commandType"] = commandTypeArg;
+    parsedArgs["commandType"] = <CommandTypes>commandTypeArg;
   }
-  const FullParams = CreateAvailableParams.concat(UpdateAvailableParams);
+  const availableParams = [...CREATE_AVAILABLE_PARAMS, ...UPDATE_AVAILABLE_PARAMS];
   let parsedArg: AvailableParams | undefined;
-  for (const arg of commandArgs) {
-    if (FullParams.find((value => value == arg))) {
-      parsedArg = arg as AvailableParams;
-      continue;
-    }
-    if (parsedArg) {
-      const key = ParamToKeyMapping.get(parsedArg);
-      if (key) {
-        parsedArgs[key] = arg;
+  for (const param of commandParams) {
+    if (availableParams.find((value => value === param))) {
+      parsedArg = param as AvailableParams;
+    } else {
+      if (parsedArg) {
+        const key = PARAM_TO_KEY_MAPPING.get(parsedArg);
+        if (key) {
+          parsedArgs[key] = param;
+        }
+        parsedArg = undefined;
+      } else {
+        throw new CommandArgumentsError(
+          "Wrong command input"
+        )
       }
-      parsedArg = undefined;
     }
   }
   return parsedArgs as ParsedArgs;
@@ -164,8 +170,7 @@ try {
         console.log(result.toString())
       }
       break;
-    } default:
-      throw new Error("Please select create or update command option.")
+    }
   }
 } catch(error) {
   console.log("\x1b[31m", error);
