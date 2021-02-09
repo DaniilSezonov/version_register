@@ -16,6 +16,11 @@
 
 ### 🏠 [Homepage](https://github.com/DaniilSezonov/version_register)
 
+## Build
+
+```sh
+npm run build
+
 ## Usage
 
 ```sh
