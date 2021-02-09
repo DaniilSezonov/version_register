@@ -1,5 +1,5 @@
-import RestAPIService, { APIAttrs, APIResponse } from "./service";
-import {AxiosError} from "axios";
+import { RestAPIService, APIAttrs } from "./service";
+import {ServiceError} from "../errors";
 
 interface GitlabTagData {
     name: string;
@@ -35,16 +35,12 @@ interface GitlabTagAttrs extends APIAttrs {
 }
 
 export default class GitlabTagService extends RestAPIService {
-    // async read() {
-    //     return this.requester.get<GitlabTagData>(this.path);
-    // }
-    async create(attrs: GitlabTagAttrs) {
+    async create<GitlabTagData>(attrs: GitlabTagAttrs) {
         const path = this.getPath(attrs.id);
         try {
-            await this.requester.post<GitlabTagData>(path,null, {params: attrs});
+            return await this.requester.post<GitlabTagData>(path,null, {params: attrs});
         } catch (error) {
-            console.log(error);
-            return error.response as APIResponse<GitlabTagData>;
+            throw new ServiceError(error, "Gitlab tag service");
         }
     }
     getPath(projectId: string): string {

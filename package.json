@@ -1,6 +1,6 @@
 {
   "name": "versions-register",
-  "version": "1.0.0",
+  "version": "0.2.2",
   "description": "Simple script for registering application versions.",
   "main": "src/index.ts",
   "scripts": {
@@ -17,11 +17,14 @@
     "@types/node": "^14.14.10",
     "eslint": "^7.14.0",
     "jest": "^26.6.3",
-    "ts-jest": "^26.4.4",
-    "typescript": "^4.1.2"
+    "ts-jest": "^26.4.4"
   },
   "dependencies": {
     "axios": "^0.21.1",
     "dotenv": "^8.2.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/DaniilSezonov/version_register.git"
   }
 }

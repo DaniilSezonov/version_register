@@ -1,0 +1,46 @@
+<h1 align="center">Welcome to versions-register 👋</h1>
+<p>
+  <img alt="Version" src="https://img.shields.io/badge/version-0.2.1-blue.svg?cacheSeconds=2592000" />
+  <a href="https://github.com/DaniilSezonov/version_register/wiki" target="_blank">
+    <img alt="Documentation" src="https://img.shields.io/badge/documentation-yes-brightgreen.svg" />
+  </a>
+  <a href="https://github.com/DaniilSezonov/version_register/graphs/commit-activity" target="_blank">
+    <img alt="Maintenance" src="https://img.shields.io/badge/Maintained%3F-yes-green.svg" />
+  </a>
+  <a href="#" target="_blank">
+    <img alt="License: ISC" src="https://img.shields.io/github/license/DaniilSezonov/versions-register" />
+  </a>
+</p>
+
+> Application for versioning application, maybe some useless, but...
+
+### 🏠 [Homepage](https://github.com/DaniilSezonov/version_register)
+
+## Usage
+
+```sh
+npm run start
+```
+
+## Run tests
+
+```sh
+npm run test
+```
+
+## Author
+
+👤 **Sezonov Daniil**
+
+* Github: [@DaniilSezonov](https://github.com/DaniilSezonov)
+
+## 🤝 Contributing
+
+Contributions, issues and feature requests are welcome!<br />Feel free to check [issues page](https://github.com/DaniilSezonov/version_register/issues). 
+
+## Show your support
+
+Give a ⭐️ if this project helped you!
+
+***
+_This README was generated with ❤️ by [readme-md-generator](https://github.com/kefranabg/readme-md-generator)_

@@ -3,8 +3,14 @@ import axios, { AxiosInstance, AxiosResponse } from "axios";
 export type APIResponse<R> = Promise<AxiosResponse<R>>;
 export type APIAttrs = any;
 
-export default class RestAPIService {
-    // Какая-то хуета и бред)
+export interface RestAPIService {
+    create?<R>(attrs: APIAttrs): APIResponse<R>;
+    update?<R>(attrs: APIAttrs): APIResponse<R>;
+    read?<R>(attrs: APIAttrs): APIResponse<R>;
+    delete?<R>(attrs: APIAttrs): APIResponse<R>;
+}
+
+export class RestAPIService {
     protected requester: AxiosInstance;
     protected path?: string;
     constructor(baseUrl: string, apiToken: string) {
@@ -16,9 +22,4 @@ export default class RestAPIService {
             }
         })
     }
-    // get<R>(): APIResponse<R>;
-    // post?<R>(attrs: APIAttrs): APIResponse<R>;
-    // abstract put?<R>(attrs: APIAttrs): APIResponse<R>;
-    // abstract patch?<R>(attrs: APIAttrs): APIResponse<R>;
-    // abstract delete?<R>(attrs: APIAttrs): APIResponse<R>;
 }

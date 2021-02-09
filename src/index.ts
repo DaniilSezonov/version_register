@@ -1,6 +1,6 @@
 import {create, update, read} from "./commands";
 import {Branch, Project, Version} from "./models";
-import {CommandArgumentsError, CommandParsingError} from "./errors";
+import {CommandArgumentsError, CommandParsingError, VersionRegisterError} from "./errors";
 
 const CreateTypeArg = "create";
 const UpdateTypeArg = "update";
@@ -110,11 +110,23 @@ const PARAM_TO_KEY_MAPPING = new Map<AvailableParams, AvailableKeys>(
     // ]
   ],
 );
+
+const welcome = () => {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const { version } = require('../package.json');
+  const msg = `Welcome to version-register v${version}. Available arguments is:`;
+  console.log(msg, availableArgs.map(el => `${el}`));
+}
+
 const parseArgs = (args: string[]) => {
   const parsedArgs: ParsedArgs | Record<string, any> = {};
   const commandParams = args.slice(3);
   const commandTypeArg = args[2];
-  if (availableArgs.findIndex(command=>command === commandTypeArg) === -1) {
+  if (!commandTypeArg) {
+    welcome();
+    return;
+  }
+  if (availableArgs.findIndex(command => command === commandTypeArg) === -1) {
     throw new CommandParsingError(
       "ParseCommandError",
       commandTypeArg,
@@ -145,9 +157,11 @@ const parseArgs = (args: string[]) => {
   return parsedArgs as ParsedArgs;
 }
 
-const commandData = parseArgs(process.argv);
-
-try {
+function main() {
+  const commandData = parseArgs(process.argv);
+  if (!commandData) {
+    return;
+  }
   switch (commandData.commandType) {
     case "create": {
       const [registry, createdElement] = create(commandData);
@@ -172,6 +186,18 @@ try {
       break;
     }
   }
-} catch(error) {
-  console.log("\x1b[31m", error);
+}
+
+try {
+  main();
+} catch (error) {
+  if (error instanceof VersionRegisterError) {
+    console.log("\x1b[33m", error.message);
+  } else {
+    console.log("\x1b[31m");
+    console.log(error);
+    throw new Error(
+      "Unhandled error! Something was really wrong. My creator's brains are banana cake."
+    )
+  }
 }

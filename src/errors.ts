@@ -57,3 +57,14 @@ export class StoreError extends VersionRegisterError {
 		super(message);
 	}
 }
+
+export class ServiceError extends VersionRegisterError {
+	constructor(message: string, serviceName?: string) {
+		super(message);
+		if (serviceName) {
+			this.setExtraMessage(
+				`${serviceName} rejected the request.`
+			)
+		}
+	}
+}
