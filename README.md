@@ -20,7 +20,7 @@
 
 ```sh
 npm run build
-
+```
 ## Usage
 
 ```sh
