@@ -1,6 +1,8 @@
 import {create, update, read} from "./commands";
 import {Branch, Project, Version} from "./models";
 import {CommandArgumentsError, CommandParsingError, VersionRegisterError} from "./errors";
+import {applicationVersion} from "./constants";
+
 
 const CreateTypeArg = "create";
 const UpdateTypeArg = "update";
@@ -112,9 +114,7 @@ const PARAM_TO_KEY_MAPPING = new Map<AvailableParams, AvailableKeys>(
 );
 
 const welcome = () => {
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const { version } = require('../package.json');
-  const msg = `Welcome to version-register v${version}. Available arguments is:`;
+  const msg = `Welcome to version-register v${applicationVersion}. Available arguments is:`;
   console.log(msg, availableArgs.map(el => `${el}`));
 }
 

@@ -8,3 +8,4 @@ export const defaultConfig = {
   gitlabSecret: "",
   gitlabProjectId: "",
 }
+export const applicationVersion = process.env.npm_package_version;
