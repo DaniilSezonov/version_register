@@ -19,6 +19,7 @@ services:
     secrets:
       - source: versions_register_config
         target: ./.env
+    entrypoint: /app/entrypoint.sh
      
 secrets:
   versions_register_config:
