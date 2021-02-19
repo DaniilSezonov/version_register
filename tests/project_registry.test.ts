@@ -50,10 +50,11 @@ describe('Project Model', () => {
 
 describe("Registry", () => {
   config.dataDir = "test.dataDir";
-  test('Save/Load', () => {
+  test('Save/Load', async () => {
     const initVersion: [number, number, number] = [1, 0, 0];
     const branchId = "testbranchid";
     const registry = new ProjectRegistry();
+    await registry.initialize();
     const newProject = new Project({
       name: "Test",
       branches: [{
@@ -67,8 +68,9 @@ describe("Registry", () => {
     });
     registry.add(newProject)
     expect(registry.getById(newProject.id)).toBeInstanceOf(Project);
-    registry.save()
+    await registry.save()
     const newRegistry = new ProjectRegistry();
+    await newRegistry.initialize();
     expect(newRegistry.getById(newProject.id)).toBeInstanceOf(Project);
   });
   afterAll(() => {

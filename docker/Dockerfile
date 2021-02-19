@@ -15,7 +15,7 @@ WORKDIR /app/
 
 RUN chown node:node . -R
 USER node
-RUN mkdir /app/data && mkdir /app/data/history
+RUN mkdir /app/data && mkdir /app/data/history && touch /app/services.log
 
 COPY --from=build /app/node_modules/ /app/node_modules/
 COPY --from=build /app/dist/ /app/

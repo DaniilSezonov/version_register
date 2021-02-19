@@ -4,12 +4,13 @@ import {ParsedArgs} from "./index";
 import {ProjectRegistry} from "./registry";
 import config from "./config";
 import GitlabTagService from "./services/tagService";
-import {defaultConfig} from "./constants";
+import {defaultConfig, Loggers} from "./constants";
 import {VersionRegisterError} from "./errors";
 
 
-export function update(commandData: ParsedArgs): ProjectRegistry {
+export async function update(commandData: ParsedArgs): Promise<ProjectRegistry> {
   const registry = new ProjectRegistry();
+  await registry.initialize();
   const updateTypePart = findUpdateTypePart(commandData?.commitMsg || "");
   let updateType: UpdateType;
   const project = registry.getById(commandData.projectId || "");
@@ -31,7 +32,9 @@ export function update(commandData: ParsedArgs): ProjectRegistry {
         updateType = UpdateType.Path;
         break;
       default:
-        throw new VersionRegisterError(`Project with id ${commandData.projectId} does not exist.`)
+        throw new VersionRegisterError(`
+          Update pattern not found in commit message, current pattern is ${config.pattern}
+        `);
     }
     if (branch) {
       const newVersion = project.update(updateType, branch.id);
@@ -45,12 +48,13 @@ export function update(commandData: ParsedArgs): ProjectRegistry {
   } else if (commandData.gitlabId) {
     project.gitlabProjectId = commandData.gitlabId;
   }
-  registry.save();
+  await registry.save();
   return registry;
 }
 
-export function create<T extends Project | Branch>(commandData: ParsedArgs): [ProjectRegistry, T] {
+export async function create<T extends Project | Branch>(commandData: ParsedArgs): Promise<[ProjectRegistry, T]> {
   const registry = new ProjectRegistry();
+  await registry.initialize();
   let newItem: Branch | Project;
   if (commandData.projectName && commandData.branchName && commandData.startWithVersion) {
     const newProject = new Project({
@@ -65,7 +69,7 @@ export function create<T extends Project | Branch>(commandData: ParsedArgs): [Pr
       gitlabProjectId: commandData.gitlabId,
     });
     registry.add(newProject);
-    registry.save();
+    await registry.save();
     const newBranch = newProject.getBranch(commandData.branchName)
     if (isActiveTagging() && newBranch) {
       sendTag(
@@ -80,7 +84,7 @@ export function create<T extends Project | Branch>(commandData: ParsedArgs): [Pr
       throw new VersionRegisterError(`Not found project with id ${commandData.projectId}`);
     } else {
       const newBranch = project.newBranch(commandData.branchName, commandData.fromBranch);
-      registry.save();
+      await registry.save();
       if (isActiveTagging()) {
         sendTag(project, newBranch);
       }
@@ -94,8 +98,10 @@ export function create<T extends Project | Branch>(commandData: ParsedArgs): [Pr
   return [registry, newItem] as [ProjectRegistry, T];
 }
 
-export function read(commandData: ParsedArgs): Version | Project[] | undefined {
+type ReadReturnType = Promise<Version | Project[] | undefined>
+export async function read(commandData: ParsedArgs): ReadReturnType {
   const registry = new ProjectRegistry();
+  await registry.initialize();
   if (commandData.projectId && commandData.branchName) {
     const project = registry.getById(commandData.projectId);
     const branch = project?.getBranch(commandData.branchName);
@@ -115,7 +121,7 @@ function isActiveTagging() {
   return config.gitlabSecret !== defaultConfig.gitlabSecret;
 }
 
-function sendTag(project: Project, branch: Branch) {
+async function sendTag(project: Project, branch: Branch) {
   if (!project.gitlabProjectId) {
     throw new VersionRegisterError(
       `gitlabSecret was found but gitlabProjectId is
@@ -123,7 +129,10 @@ function sendTag(project: Project, branch: Branch) {
     );
   }
   const tagService = new GitlabTagService(config.gitlabApiURI, config.gitlabSecret);
-  tagService.create({
+  if (Loggers.serviceLogger) {
+    await tagService.setLogger(Loggers.serviceLogger);
+  }
+  await tagService.create({
     id: project.gitlabProjectId,
     tag_name: branch.version.toString(),
     ref: branch.name,

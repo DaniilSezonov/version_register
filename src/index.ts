@@ -1,7 +1,8 @@
 import {create, update, read} from "./commands";
 import {Branch, Project, Version} from "./models";
 import {CommandArgumentsError, CommandParsingError, VersionRegisterError} from "./errors";
-import {applicationVersion} from "./constants";
+import {applicationVersion, Loggers} from "./constants";
+import Logger from "./services/logger";
 
 
 const CreateTypeArg = "create";
@@ -164,29 +165,39 @@ function main() {
   }
   switch (commandData.commandType) {
     case "create": {
-      const [registry, createdElement] = create(commandData);
-      if (createdElement instanceof Project) {
-        console.log(`New project has been created with id: \n${createdElement.id}`)
-      }
-      if (createdElement instanceof Branch) {
-        console.log(`New branch has been created with id: \n${createdElement.id}`)
-      }
+      create(commandData).then(
+        ([,createdElement]) => {
+          if (createdElement instanceof Project) {
+            console.log(`New project has been created with id: \n${createdElement.id}`)
+          }
+          if (createdElement instanceof Branch) {
+            console.log(`New branch has been created with id: \n${createdElement.id}`)
+          }
+        });
+      cleanUp();
       break;
     }
     case "update":
-      update(commandData);
+      update(commandData).then(() => {
+        cleanUp();
+      });
       break;
     case "read": {
-      const result = read(commandData);
-      if (Array.isArray(result)) {
-        console.log(JSON.stringify(result, undefined, " "));
-      } else if (result instanceof Version) {
-        console.log(result.toString())
-      }
+      read(commandData).then((result) => {
+        if (Array.isArray(result)) {
+          console.log(JSON.stringify(result, undefined, " "));
+        } else if (result instanceof Version) {
+          console.log(result.toString())
+        }
+        cleanUp();
+      });
       break;
     }
   }
 }
+const serviceLogger = new Logger();
+Loggers.serviceLogger = serviceLogger;
+serviceLogger.initialize().then(() => {console.log("Service logger initialize successfully")});
 
 try {
   main();
@@ -194,10 +205,14 @@ try {
   if (error instanceof VersionRegisterError) {
     console.log("\x1b[33m", error.message);
   } else {
-    console.log("\x1b[31m");
-    console.log(error);
     throw new Error(
       "Unhandled error! Something was really wrong. My creator's brains are banana cake."
     )
+  }
+}
+
+function cleanUp() {
+  for (const logger of Object.values<Logger>(Loggers)) {
+    logger.bye();
   }
 }
