@@ -1,16 +1,17 @@
 import { promises as fs } from "fs";
 import {VersionRegisterError} from "../errors";
+import config from "../config";
 
 
-class LoggerError extends VersionRegisterError {
+export class LoggerError extends VersionRegisterError {
 	constructor(error: string) {
-		super("Logger error, can not create logfile");
+		super("Logger error");
 		this.setExtraMessage(error);
 	}
 }
 
 class Logger {
-	public logfile = "./services.log"
+	public logfile = `${config.dataDir}/services.log`
 	protected fileHandle?: fs.FileHandle;
 	public isReady = false;
 	public messagePool: string[] = [];
@@ -28,11 +29,16 @@ class Logger {
 		}
 	}
 	public async writeLog(msg: string) {
+		const formattedMsg = this.formatMsg(msg);
 		if (this.isReady && this.fileHandle) {
-			await this.fileHandle.write(msg);
+			await this.fileHandle.write(formattedMsg);
 		} else {
-			this.messagePool = this.messagePool.concat(msg);
+			this.messagePool = this.messagePool.concat(formattedMsg);
 		}
+	}
+	protected formatMsg(msg: string): string {
+		const date = new Date();
+		return `${date.toLocaleTimeString()}: ${msg} \n`
 	}
 	public async bye() {
 		if (this.fileHandle) {

@@ -1,5 +1,6 @@
 import {APIAttrs, RestAPIService} from "./service";
 import {ServiceError} from "../errors";
+import {LoggerError} from "./logger";
 
 export interface GitlabTagData {
 	name: string;
@@ -37,15 +38,22 @@ interface GitlabTagAttrs extends APIAttrs {
 export default class GitlabTagService extends RestAPIService {
 	async create<GitlabTagData>(attrs: GitlabTagAttrs) {
 		const path = this.getPath(attrs.id);
+		let response;
 		try {
-			const response = await this.requester.post<GitlabTagData>(path, null, {params: attrs});
-			if (this.logger) {
-				await this.logger.writeLog(response.statusText);
-			}
-			return response;
+			response = await this.requester.post<GitlabTagData>(path, null, {params: attrs});
 		} catch (error) {
 			throw new ServiceError(error, "Gitlab tag service");
 		}
+		if (this.logger) {
+			try {
+				await this.logger.writeLog(
+					`${response.status}: ${response.statusText}`
+				);
+			} catch (error) {
+				throw new LoggerError(error);
+			}
+		}
+		return response;
 	}
 
 	getPath(projectId: string): string {

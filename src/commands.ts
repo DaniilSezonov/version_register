@@ -43,7 +43,7 @@ export async function update(commandData: ParsedArgs): Promise<ProjectRegistry> 
       throw new VersionRegisterError("Branch does not exists");
     }
     if (isActiveTagging()) {
-      sendTag(project, branch);
+      await sendTag(project, branch);
     }
   } else if (commandData.gitlabId) {
     project.gitlabProjectId = commandData.gitlabId;
@@ -72,7 +72,7 @@ export async function create<T extends Project | Branch>(commandData: ParsedArgs
     await registry.save();
     const newBranch = newProject.getBranch(commandData.branchName)
     if (isActiveTagging() && newBranch) {
-      sendTag(
+      await sendTag(
         newProject,
         newBranch
       )
@@ -86,7 +86,7 @@ export async function create<T extends Project | Branch>(commandData: ParsedArgs
       const newBranch = project.newBranch(commandData.branchName, commandData.fromBranch);
       await registry.save();
       if (isActiveTagging()) {
-        sendTag(project, newBranch);
+        await sendTag(project, newBranch);
       }
       newItem = newBranch;
     }

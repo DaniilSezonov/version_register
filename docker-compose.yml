@@ -3,8 +3,10 @@ version: '3.7'
 services:
   app:
     image: $IMAGE
+    environment:
+      - dataDir=data
     volumes:
-      - $PERSISTENT_DATA:/app/data/:rw
+      - $PERSISTENT_DATA:/app/${dataDir}/:rw
       - $PERSISTENT_DATA/logs/services.log:/app/services.log
     deploy:
       mode: global

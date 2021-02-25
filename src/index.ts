@@ -173,8 +173,8 @@ function main() {
           if (createdElement instanceof Branch) {
             console.log(`New branch has been created with id: \n${createdElement.id}`)
           }
+          cleanUp();
         });
-      cleanUp();
       break;
     }
     case "update":
