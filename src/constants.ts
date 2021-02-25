@@ -4,10 +4,13 @@ export const ProjectsStoreFileName = "projects.json";
 export const HistoryPath = "history";
 export const DataDirectoryPermission = "744";
 
-interface ILoggers {
-  [s: string]: Logger;
+type LoggerIndexes = 'serviceLogger';
+type Loggers = {
+  [K in LoggerIndexes]: Logger | undefined;
 }
-export const Loggers: ILoggers = {};
+export const Loggers: Loggers = {
+  serviceLogger: undefined,
+};
 
 export const defaultConfig = {
   dataDir: "data",

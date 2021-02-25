@@ -5,7 +5,7 @@ services:
     image: $IMAGE
     volumes:
       - $PERSISTENT_DATA:/app/data/:rw
-      - $PERSISTENT_DATA}/logs/services.log:/app/services.log
+      - $PERSISTENT_DATA/logs/services.log:/app/services.log
     deploy:
       mode: global
       restart_policy:

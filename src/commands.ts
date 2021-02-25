@@ -118,7 +118,7 @@ function parseVersionParam(version: string) {
 }
 
 function isActiveTagging() {
-  return config.gitlabSecret !== defaultConfig.gitlabSecret;
+  return !!config.gitlabSecret;
 }
 
 async function sendTag(project: Project, branch: Branch) {
@@ -130,6 +130,9 @@ async function sendTag(project: Project, branch: Branch) {
   }
   const tagService = new GitlabTagService(config.gitlabApiURI, config.gitlabSecret);
   if (Loggers.serviceLogger) {
+    if (!Loggers.serviceLogger.isReady) {
+      await Loggers.serviceLogger.initialize();
+    }
     await tagService.setLogger(Loggers.serviceLogger);
   }
   await tagService.create({

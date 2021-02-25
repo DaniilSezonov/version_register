@@ -1,7 +1,7 @@
 import {APIAttrs, RestAPIService} from "./service";
 import {ServiceError} from "../errors";
 
-interface GitlabTagData {
+export interface GitlabTagData {
 	name: string;
 	message?: string;
 	target: string;

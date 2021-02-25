@@ -59,9 +59,7 @@ async function verify_branch_history(dataDir: string, branch: Branch) {
     expect(true).toBe(false);
   }
 }
-
 describe("Create Application",   () => {
-  config.dataDir = "test.dataDir";
   afterEach(async () => {
     await fs.rmdir(path.join(config.dataDir), {recursive: true});
   });
@@ -152,24 +150,3 @@ describe("Create Application",   () => {
     }
   });
 });
-
-// describe("Repository tags", () => {
-//   const testSecret = "testSecret";
-//   const customApiURI = "/custom_api";
-//   const testProjectId = 420024;
-//   beforeEach(() => {
-//     jest.mock("../src/config");
-//     // eslint-disable-next-line @typescript-eslint/no-var-requires
-//     const config = require('../src/config');
-//     config.gitlabSecret = testSecret;
-//     config.gitlabApiURI = customApiURI;
-//   });
-//   test("Create Project", () => {
-//     const commandParams: ParsedArgs = {
-//       projectName: "Test Project",
-//       branchName: "master",
-//       startWithVersion: "1.0.0",
-//       commandType: "create",
-//     };
-//   });
-// });

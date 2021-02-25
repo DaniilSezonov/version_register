@@ -2,6 +2,7 @@ import * as dotenv from "dotenv";
 import {defaultConfig} from "./constants";
 import "dotenv";
 
+
 interface Config {
   dataDir: string;
   pattern: string;
@@ -12,15 +13,12 @@ interface Config {
 const config: Config = {
   ...defaultConfig
 };
-try {
-  const envLoader = dotenv.config();
-  if (envLoader.parsed) {
-    config.dataDir = envLoader.parsed["dataDir"] || defaultConfig.dataDir;
-    config.pattern = envLoader.parsed["pattern"] || defaultConfig.pattern;
-    config.gitlabApiURI = envLoader.parsed["gitlabApiURI"] || defaultConfig.gitlabApiURI;
-    config.gitlabSecret = envLoader.parsed["gitlabSecret"] || defaultConfig.gitlabSecret;
-  }
-} catch (e) {
-  console.log(e);
+const envFilePath = process.env.NODE_ENV === "test" ? "test.env" : ".env";
+const envLoader = dotenv.config({path: envFilePath});
+if (envLoader.parsed) {
+  config.dataDir = envLoader.parsed["dataDir"] || config.dataDir;
+  config.pattern = envLoader.parsed["pattern"] || config.pattern;
+  config.gitlabApiURI = envLoader.parsed["gitlabApiURI"] || config.gitlabApiURI;
+  config.gitlabSecret = envLoader.parsed["gitlabSecret"] || config.gitlabSecret;
 }
 export default config;

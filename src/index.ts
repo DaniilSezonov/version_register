@@ -197,7 +197,6 @@ function main() {
 }
 const serviceLogger = new Logger();
 Loggers.serviceLogger = serviceLogger;
-serviceLogger.initialize().then(() => {console.log("Service logger initialize successfully")});
 
 try {
   main();
@@ -212,7 +211,9 @@ try {
 }
 
 function cleanUp() {
-  for (const logger of Object.values<Logger>(Loggers)) {
-    logger.bye();
+  for (const logger of Object.values(Loggers)) {
+    if (logger) {
+      logger.bye();
+    }
   }
 }
