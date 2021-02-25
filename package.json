@@ -1,6 +1,6 @@
 {
   "name": "versions-register",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "Simple script for registering application versions.",
   "main": "src/index.ts",
   "scripts": {

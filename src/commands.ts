@@ -98,17 +98,21 @@ export async function create<T extends Project | Branch>(commandData: ParsedArgs
   return [registry, newItem] as [ProjectRegistry, T];
 }
 
-type ReadReturnType = Promise<Version | Project[] | undefined>
+type ReadReturnType = Promise<Version | Project[]>
 export async function read(commandData: ParsedArgs): ReadReturnType {
   const registry = new ProjectRegistry();
   await registry.initialize();
   if (commandData.projectId && commandData.branchName) {
     const project = registry.getById(commandData.projectId);
+    if (!project) {
+      throw new VersionRegisterError(`Not found project with id ${commandData.projectId}`);
+    }
     const branch = project?.getBranch(commandData.branchName);
     if (branch) {
       return branch.version;
+    } else {
+      throw new VersionRegisterError(`Not found branch with name ${commandData.branchName}`);
     }
-    else return undefined;
   }
   return registry.all()
 }
