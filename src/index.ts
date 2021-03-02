@@ -3,6 +3,7 @@ import {Branch, Project, Version} from "./models";
 import {CommandArgumentsError, CommandParsingError, VersionRegisterError} from "./errors";
 import {applicationVersion, Loggers} from "./constants";
 import Logger from "./services/logger";
+import {initializeConfiguration} from "./config";
 
 
 const CreateTypeArg = "create";
@@ -199,6 +200,7 @@ const serviceLogger = new Logger();
 Loggers.serviceLogger = serviceLogger;
 
 try {
+  initializeConfiguration();
   main();
 } catch (error) {
   if (error instanceof VersionRegisterError) {

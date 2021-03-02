@@ -4,7 +4,7 @@ import {ParsedArgs} from "./index";
 import {ProjectRegistry} from "./registry";
 import config from "./config";
 import GitlabTagService from "./services/tagService";
-import {defaultConfig, Loggers} from "./constants";
+import {Loggers} from "./constants";
 import {VersionRegisterError} from "./errors";
 
 
