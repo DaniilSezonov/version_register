@@ -1,5 +1,5 @@
 import {Branch, BranchHistory, HistoryItem, Project, ProjectData} from "./models";
-import * as fs from "fs";
+import {promises as fs} from "fs";
 import config from "./config";
 import * as path from "path";
 import {DataDirectoryPermission, HistoryPath, ProjectsStoreFileName} from "./constants";
@@ -10,12 +10,12 @@ export interface ProjectStore {
   [id: string]: ProjectData,
 }
 
-export function checkDataDirectory(): void {
+export async function checkDataDirectory(): Promise<void> {
   try {
-    fs.readdirSync(config.dataDir);
+    await fs.readdir(config.dataDir);
   } catch (error) {
     console.log("Data directory does not exists. Creating data...")
-    fs.mkdirSync(config.dataDir, DataDirectoryPermission);
+    await fs.mkdir(config.dataDir, DataDirectoryPermission);
     console.log(`
             Data directory created successful./n 
             Name: ${config.dataDir} /n
@@ -23,10 +23,10 @@ export function checkDataDirectory(): void {
         `);
   }
   try {
-    fs.readdirSync(path.join(config.dataDir, HistoryPath));
+    await fs.readdir(path.join(config.dataDir, HistoryPath));
   } catch (error) {
     console.log("History directory does not exists. Creating history...")
-    fs.mkdirSync(path.join(config.dataDir, HistoryPath), DataDirectoryPermission);
+    await fs.mkdir(path.join(config.dataDir, HistoryPath), DataDirectoryPermission);
     console.log(`
             History directory created successful./n 
             Name: ${path.join(config.dataDir, HistoryPath)} /n
@@ -35,7 +35,7 @@ export function checkDataDirectory(): void {
   }
 }
 
-export function saveProjects(projects: IterableIterator<Project>, dataDir: string): void {
+export async function saveProjects(projects: IterableIterator<Project>, dataDir: string): Promise<void> {
   const out: Partial<ProjectStore> = {};
   for (const project of projects) {
     out[project.id] = {
@@ -54,18 +54,18 @@ export function saveProjects(projects: IterableIterator<Project>, dataDir: strin
     }
   }
   const json = JSON.stringify(out || {}, null, 4);
-  fs.writeFileSync(path.join(dataDir, ProjectsStoreFileName), json);
+  await fs.writeFile(path.join(dataDir, ProjectsStoreFileName), json);
 }
 
-export function loadProjects(dataDir: string): Project[] {
+export async function loadProjects(dataDir: string): Promise<Project[]> {
   let result: any[] = [];
   let json: ProjectStore = {};
   try {
-    const content = fs.readFileSync(path.resolve(dataDir, ProjectsStoreFileName), "utf8");
+    const content = await fs.readFile(path.resolve(dataDir, ProjectsStoreFileName), "utf8");
     json = JSON.parse(content);
   } catch (error) {
     console.log(`${ProjectsStoreFileName} does not exists. It has been created.`)
-    fs.writeFileSync(path.resolve(dataDir, ProjectsStoreFileName), JSON.stringify({}));
+    await fs.writeFile(path.resolve(dataDir, ProjectsStoreFileName), JSON.stringify({}));
   }
   for (const [id, projectData] of Object.entries(json)) {
     result = result.concat(new Project({
@@ -78,8 +78,8 @@ export function loadProjects(dataDir: string): Project[] {
   return result;
 }
 
-export function saveBranchHistory(branch: Branch, dataDir: string): void {
-  const historyDir = fs.readdirSync(path.join(dataDir, HistoryPath));
+export async function saveBranchHistory(branch: Branch, dataDir: string): Promise<void> {
+  const historyDir = await fs.readdir(path.join(dataDir, HistoryPath));
   let prevHistoryFile = null;
   for (const historyFileName of historyDir) {
     if (prevHistoryFile && historyFileName === branch.id) {
@@ -91,12 +91,11 @@ export function saveBranchHistory(branch: Branch, dataDir: string): void {
   let history: BranchHistory = {};
   let latestHistory: HistoryItem | undefined = undefined;
   if (prevHistoryFile && branch.previousVersion) {
-    const data = fs.readFileSync(path.join(dataDir, HistoryPath, prevHistoryFile as string), "utf8");
+    const data = await fs.readFile(path.join(dataDir, HistoryPath, prevHistoryFile as string), "utf8");
     history = JSON.parse(data);
     try {
       /// todo questionable decision
       latestHistory = history[branch.previousVersion[0]][branch.previousVersion[1]][branch.previousVersion[2]];
-
     } catch (error) {
       console.log("\x1b[31m", "Corrupted datafile! Several of the versions are missing.")
       throw new StoreError("Save history error");
@@ -122,7 +121,7 @@ export function saveBranchHistory(branch: Branch, dataDir: string): void {
     newItem,
     [branch.version.major, branch.version.minor, branch.version.path]
   )
-  fs.writeFileSync(path.join(dataDir, HistoryPath, branch.id), JSON.stringify(newHistory), "utf8");
+  await fs.writeFile(path.join(dataDir, HistoryPath, branch.id), JSON.stringify(newHistory), "utf8");
 }
 
 function mergeHistory(history: BranchHistory, newHistoryItem: BranchHistory, newVersion: [number, number, number]) {
