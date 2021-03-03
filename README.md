@@ -1,6 +1,6 @@
 <h1 align="center">Welcome to versions-register 👋</h1>
 <p>
-  <img alt="Version" src="https://img.shields.io/badge/version-0.2.1-blue.svg?cacheSeconds=2592000" />
+  <img alt="Version" src="https://img.shields.io/badge/version-0.3.3-blue.svg?cacheSeconds=2592000" />
   <a href="https://github.com/DaniilSezonov/version_register/wiki" target="_blank">
     <img alt="Documentation" src="https://img.shields.io/badge/documentation-yes-brightgreen.svg" />
   </a>

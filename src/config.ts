@@ -12,11 +12,21 @@ interface Config extends EmptyConfig {
   gitlabSecret: string;
 }
 
+const configKeys = ["dataDir", "pattern", "gitlabApiURI", "gitlabSecret"];
+
 const config: Config | EmptyConfig = {};
 let wasLoaded = false;
 initializeConfiguration();
 
-export function initializeConfiguration() {
+function* getConfigByProcess() {
+  for (const key of configKeys) {
+    if (process.env[key]) {
+      yield [key, process.env[key] as string];
+    }
+  }
+}
+
+export function initializeConfiguration(): void {
   if (wasLoaded) {
     return
   }
@@ -32,7 +42,9 @@ export function initializeConfiguration() {
     config.gitlabSecret = defaultConfig.gitlabSecret;
     config.gitlabApiURI = defaultConfig.gitlabApiURI;
     config.pattern = defaultConfig.pattern;
-    console.log(".env file with configuration is not found. Default configuration was loaded.")
+  }
+  for (const configKeyValue of getConfigByProcess()) {
+    config[configKeyValue[0]] = configKeyValue[1];
   }
   wasLoaded = true;
 }
