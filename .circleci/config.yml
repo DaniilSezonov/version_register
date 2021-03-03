@@ -1,7 +1,87 @@
 version: 2.1
 orbs:
   node: circleci/node@3.0.0
+jobs:
+  build-node:
+    docker:
+      - image: circleci/node:14.15
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - v1-deps-{{ checksum "package-lock.json" }}
+      - run: npm install
+      - save_cache:
+          paths:
+            - node_modules
+          key: v1-deps-{{ checksum "package-lock.json" }}
+      - run: npm run build
+      - persist_to_workspace:
+          root: .
+          paths:
+            - "dist"
+            - "node_modules"
+            - "version-register"
+  versioning:
+    docker:
+      - image: circleci/node:14.15
+    environment:
+        dataDir: version-register
+        pattern: --UpdateType=(MAJOR|MINOR|PATCH)
+    steps:
+      - attach_workspace:
+          at: .
+      - run: node ./dist/index.js read --project-id $VER_REG_PROJECT_ID --branch-name master > ./VERSION.TXT
+      - persist_to_workspace:
+          root: .
+          paths:
+            - "./VERSION.TXT"
+  build-image:
+    docker:
+      - image: circleci/node:14.15
+        auth:
+          username: sezonovdaniil
+          password: $DOCKERHUB_PASSWORD
+        environment:
+          dataDir: version-register
+          pattern: --UpdateType=(MAJOR|MINOR|PATCH)
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - setup_remote_docker:
+          version: 19.03.12
+      - run: echo 'Current version is:' $(cat ./VERSION.TXT) 
+      - run: docker image build -f ./docker/Dockerfile --tag sezonovdaniil/versions-register:$(cat ./VERSION.TXT) .
+      - run: docker login -u sezonovdaniil -p $DOCKERHUB_PASSWORD 
+      - run: docker push sezonovdaniil/versions-register
+
 workflows:
-  node-tests:
+  main:
     jobs:
       - node/test
+      - build-node:
+          filters:
+            branches:
+              only:
+                - master
+          requires:
+          - node/test
+      - versioning:
+          filters:
+            branches:
+              only:
+                - master
+          requires:
+            - build-node
+          context:
+          - versions-register
+      - build-image:
+          filters:
+            branches:
+              only:
+                - master
+          requires:
+            - versioning
+          context:
+          - versions-register
