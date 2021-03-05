@@ -28,8 +28,10 @@ npm run build
 ```
 ## Usage
 
+You can use the application, after build (with current typescript config) by command:
+
 ```sh
-npm run start
+node ./dist/index.js <command> [-- <args> ...]
 ```
 
 ## Run tests
