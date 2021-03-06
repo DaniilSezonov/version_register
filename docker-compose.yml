@@ -18,7 +18,7 @@ services:
         max-size: "500k"
     secrets:
       - source: versions_register_config
-        target: ./.env
+        target: /app/.env
     entrypoint: /app/entrypoint.sh
      
 secrets:

@@ -1,6 +1,7 @@
 import {APIAttrs, RestAPIService} from "./service";
 import {ServiceError} from "../errors";
 import {LoggerError} from "./logger";
+import {AxiosError} from "axios";
 
 export interface GitlabTagData {
 	name: string;
@@ -42,7 +43,8 @@ export default class GitlabTagService extends RestAPIService {
 		try {
 			response = await this.requester.post<GitlabTagData>(path, null, {params: attrs});
 		} catch (error) {
-			throw new ServiceError(error, "Gitlab tag service");
+			const axiosError = <AxiosError<GitlabTagData>>error;
+			throw new ServiceError(axiosError.message, "Gitlab tag service");
 		}
 		if (this.logger) {
 			try {
