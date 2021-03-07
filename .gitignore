@@ -3,6 +3,8 @@ dist/
 node_modules/
 idea/
 idea/*
+.idea/*
+.idea/
 vscode/
 .env
 .vscode/
