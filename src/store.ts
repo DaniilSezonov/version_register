@@ -47,8 +47,10 @@ export async function saveProjects(projects: IterableIterator<Project>, dataDir:
           name: branch.name,
           version: {
             value: [branch.version.major, branch.version.minor, branch.version.path],
-            date: branch.version.date.toJSON()
-          }
+            date: branch.version.date.toJSON(),
+          },
+          preReleaseTag: branch.preReleaseTag,
+          previousVersion: branch.previousVersion
         }
       })
     }
@@ -64,7 +66,7 @@ export async function loadProjects(dataDir: string): Promise<Project[]> {
     const content = await fs.readFile(path.resolve(dataDir, ProjectsStoreFileName), "utf8");
     json = JSON.parse(content);
   } catch (error) {
-    console.log(`${ProjectsStoreFileName} does not exists. It has been created.`)
+    console.log(`${ProjectsStoreFileName} does not exists. It has been created.`);
     await fs.writeFile(path.resolve(dataDir, ProjectsStoreFileName), JSON.stringify({}));
   }
   for (const [id, projectData] of Object.entries(json)) {
@@ -72,7 +74,7 @@ export async function loadProjects(dataDir: string): Promise<Project[]> {
       id,
       name: projectData.name,
       branches: projectData.branches,
-      gitlabProjectId: projectData.gitlabProjectId
+      gitlabProjectId: projectData.gitlabProjectId,
     }))
   }
   return result;
@@ -97,7 +99,7 @@ export async function saveBranchHistory(branch: Branch, dataDir: string): Promis
       /// todo questionable decision
       latestHistory = history[branch.previousVersion[0]][branch.previousVersion[1]][branch.previousVersion[2]];
     } catch (error) {
-      console.log("\x1b[31m", "Corrupted datafile! Several of the versions are missing.")
+      console.log("\x1b[31m", "Corrupted datafile! Several of the versions are missing.");
       throw new StoreError("Save history error");
     }
   }
@@ -110,17 +112,17 @@ export async function saveBranchHistory(branch: Branch, dataDir: string): Promis
             value: [branch.version.major, branch.version.minor, branch.version.path],
             date: branch.version.date.toJSON(),
           },
-          previous: latestHistory?.previous
+          previous: branch.previousVersion,
         }
       }
     }
-  }
+  };
 
   const newHistory = mergeHistory(
     history,
     newItem,
     [branch.version.major, branch.version.minor, branch.version.path]
-  )
+  );
   await fs.writeFile(path.join(dataDir, HistoryPath, branch.id), JSON.stringify(newHistory), "utf8");
 }
 
@@ -142,11 +144,11 @@ function mergeHistory(history: BranchHistory, newHistoryItem: BranchHistory, new
   } else if (!history[newVersion[0]][newVersion[1]][newVersion[2]]) {
     result = {
       ...history,
-    }
+    };
     result[newVersion[0]][newVersion[1]][newVersion[2]] = newHistoryItem[newVersion[0]][newVersion[1]][newVersion[2]]
   } else {
-    console.log("\x1b[31m", "Something was really wrong!")
-    throw new StoreError("New version already exist?")
+    console.log("\x1b[31m", "Something was really wrong!");
+    throw new StoreError("New version already exist?");
   }
   return result;
 }

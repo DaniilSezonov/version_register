@@ -24,11 +24,14 @@ export interface BranchData {
   id?: string;
   name: string;
   version: VersionData;
+  previousVersion?: [number, number, number];
+  preReleaseTag?: string;
 }
 
 export interface VersionData {
   value: [number, number, number];
   date: string;
+  preRelease?: string;
 }
 
 export enum UpdateType {
@@ -52,11 +55,12 @@ export class Project {
         id: branch.id,
         name: branch.name,
         version: branch.version,
+        preReleaseTag: branch.preReleaseTag,
       }))
     })
   }
 
-  newBranch(name: string, from: string): Branch {
+  newBranch(name: string, from: string, preReleaseTagValue?: string): Branch {
     const fromBranch = this.branches.find(branch => branch.name === from);
     if (!fromBranch) {
       throw new ModelError(
@@ -70,6 +74,7 @@ export class Project {
         value: [fromBranch.version.major, fromBranch.version.minor, fromBranch.version.path],
         date: fromBranch.version.date.toJSON(),
       },
+      preReleaseTag: preReleaseTagValue,
     });
   }
 
@@ -93,6 +98,7 @@ export class Project {
     const newBranch = new Branch({
       name: data.name,
       version: data.version,
+      preReleaseTag: data.preReleaseTag,
     });
     this.addBranch(newBranch);
     return newBranch;
@@ -107,12 +113,14 @@ export class Branch {
   id: string;
   name: string;
   version: Version;
-  previousVersion: [number, number, number] | null;
+  previousVersion: [number, number, number] | undefined;
+  preReleaseTag?: string;
 
   constructor(data: BranchData) {
     this.name = data.name;
-    this.version = new Version(data.version);
-    this.previousVersion = null;
+    this.previousVersion = data.previousVersion;
+    this.preReleaseTag = data.preReleaseTag;
+    this.version = new Version({...data.version, preRelease: this.preReleaseTag});
     if (data.id) {
       this.id = data.id;
     } else {
@@ -120,13 +128,15 @@ export class Branch {
     }
   }
 
-  static fromBranch(branch: Branch, name: string): Branch {
+  static fromBranch(branch: Branch, name: string, preReleaseTag?: string): Branch {
     return new Branch({
       name: name,
       version: {
         value: [branch.version.major, branch.version.minor, branch.version.path],
         date: branch.version.date.toJSON(),
-      }
+      },
+      preReleaseTag: preReleaseTag,
+      previousVersion: branch.previousVersion,
     });
   }
 
@@ -148,7 +158,8 @@ export class Branch {
     this.previousVersion = [this.version.major, this.version.minor, this.version.path];
     this.version = new Version({
       value: nextVersion,
-      date: new Date().toJSON()
+      date: new Date().toJSON(),
+      preRelease: this.preReleaseTag,
     });
     return this.version;
   }
@@ -158,14 +169,17 @@ export class Version {
   major: number;
   minor: number;
   path: number;
+  preRelease?: string;
   date: Date;
 
   constructor(data: VersionData) {
     [this.major, this.minor, this.path] = data.value;
+    this.preRelease = data.preRelease;
     this.date = new Date(data.date);
   }
   toString() {
-    return `${this.major}.${this.minor}.${this.path}`;
+    let preReleaseTagValue = this.preRelease ? `-${this.preRelease}` : "";
+    return `${this.major}.${this.minor}.${this.path}${preReleaseTagValue}`;
   }
 }
 

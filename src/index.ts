@@ -19,9 +19,10 @@ const CommitMsgParam = "--commit-msg";
 const ProjectNameParam = "--project-name";
 const ProjectIdParam = "--project-id";
 const BranchNameParam = "--branch-name";
-const StartWithParam = "--init-version"
+const StartWithParam = "--init-version";
 const FromBranchParam = "--from";
 const GitlabProjectIdParam = "--gitlab-id";
+const PreReleaseTagParam = "--pre-release";
 
 type AvailableParams =
   typeof CommitMsgParam |
@@ -31,7 +32,8 @@ type AvailableParams =
   typeof ProjectNameParam |
   typeof FromBranchParam |
   typeof StartWithParam |
-  typeof GitlabProjectIdParam;
+  typeof GitlabProjectIdParam |
+  typeof PreReleaseTagParam;
 
 const CREATE_AVAILABLE_PARAMS: AvailableParams[] = [
   ProjectNameParam,
@@ -39,14 +41,15 @@ const CREATE_AVAILABLE_PARAMS: AvailableParams[] = [
   // CommitShaParam,
   StartWithParam,
   FromBranchParam,
-  GitlabProjectIdParam
+  GitlabProjectIdParam,
+  PreReleaseTagParam
 ];
 
 export const UPDATE_AVAILABLE_PARAMS: AvailableParams[] = [
   CommitMsgParam,
   ProjectIdParam,
   GitlabProjectIdParam
-]
+];
 
 const CommitMsgKey = "commitMsg";
 // const CommitShaKey = "commitSha";
@@ -56,6 +59,7 @@ const FromBranchKey = "fromBranch";
 const ProjectNameKey = "projectName";
 const StartWithKey = "startWithVersion";
 const GitlabProjectIdKey = "gitlabId";
+const PreReleaseTagKey = "preRelease";
 
 export interface ParsedArgs {
   commitMsg?: string;
@@ -66,6 +70,7 @@ export interface ParsedArgs {
   fromBranch?: string;
   commandType: CommandTypes;
   gitlabId?: string;
+  preRelease?: string;
 }
 
 type AvailableKeys =
@@ -76,7 +81,8 @@ type AvailableKeys =
   typeof ProjectNameKey |
   typeof FromBranchKey |
   typeof StartWithKey |
-  typeof GitlabProjectIdKey;
+  typeof GitlabProjectIdKey |
+  typeof PreReleaseTagKey;
 
 const PARAM_TO_KEY_MAPPING = new Map<AvailableParams, AvailableKeys>(
   [
@@ -107,6 +113,10 @@ const PARAM_TO_KEY_MAPPING = new Map<AvailableParams, AvailableKeys>(
     [
       GitlabProjectIdParam,
       GitlabProjectIdKey,
+    ],
+    [
+        PreReleaseTagParam,
+        PreReleaseTagKey
     ]
     // [
     //     CommitShaParam,
@@ -118,7 +128,7 @@ const PARAM_TO_KEY_MAPPING = new Map<AvailableParams, AvailableKeys>(
 const welcome = () => {
   const msg = `Welcome to version-register v${applicationVersion}. Available arguments is:`;
   console.log(msg, availableArgs.map(el => `${el}`));
-}
+};
 
 const parseArgs = (args: string[]) => {
   const parsedArgs: ParsedArgs | Record<string, any> = {};
@@ -157,7 +167,7 @@ const parseArgs = (args: string[]) => {
     }
   }
   return parsedArgs as ParsedArgs;
-}
+};
 
 function main() {
   const commandData = parseArgs(process.argv);

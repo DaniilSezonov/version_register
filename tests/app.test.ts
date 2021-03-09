@@ -93,11 +93,14 @@ describe("Create Application",   () => {
     await registry.initialize();
     registry.add(project);
     await registry.save();
+    const branchName = "testBranch";
+    const branchPreReleaseTag = "dev";
     const commandParams: ParsedArgs = {
       projectId: project.id,
-      branchName: "testBranch",
+      branchName: branchName,
       fromBranch: project.branches[0].name,
-      commandType: "create"
+      commandType: "create",
+      preRelease: branchPreReleaseTag
     };
     [registry,] = await create<Branch>(commandParams);
     await verify_project_store(config.dataDir, registry);
@@ -106,6 +109,10 @@ describe("Create Application",   () => {
         await verify_branch_history(config.dataDir, branch);
       }
     }
+    const projectFromRegistry = registry.getById(project.id);
+    const branchFromRegistry = projectFromRegistry?.getBranch(branchName);
+    expect(branchFromRegistry?.preReleaseTag).toEqual(branchPreReleaseTag);
+
   });
   test("Update", async () => {
     const branchName = "master";
@@ -131,7 +138,7 @@ describe("Create Application",   () => {
       branchName: branchName,
       commandType: "update",
       commitMsg: testCommitMessage,
-    }
+    };
     registry = await update(commandParams);
     await verify_project_store(config.dataDir, registry);
     for (const item of registry.all()) {

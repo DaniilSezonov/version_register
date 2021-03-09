@@ -21,24 +21,26 @@ export async function update(commandData: ParsedArgs): Promise<ProjectRegistry> 
   }
   if (commandData.branchName) {
     const branch = project.getBranch(commandData.branchName || "");
-    switch (updateTypePart) {
-      case "MAJOR":
-        updateType = UpdateType.Major;
-        break;
-      case "MINOR":
-        updateType = UpdateType.Minor;
-        break;
-      case "PATCH":
-        updateType = UpdateType.Path;
-        break;
-      default:
-        throw new VersionRegisterError(`
+    if (branch && updateTypePart) {
+      switch (updateTypePart) {
+        case "MAJOR":
+          updateType = UpdateType.Major;
+          break;
+        case "MINOR":
+          updateType = UpdateType.Minor;
+          break;
+        case "PATCH":
+          updateType = UpdateType.Path;
+          break;
+        default:
+          throw new VersionRegisterError(`
           Update pattern not found in commit message, current pattern is ${config.pattern}
         `);
-    }
-    if (branch) {
+      }
       const newVersion = project.update(updateType, branch.id);
       console.log(newVersion.toString());
+    } else if (branch && commandData.preRelease) {
+      branch.preReleaseTag = commandData.preRelease;
     } else {
       throw new VersionRegisterError("Branch does not exists");
     }
@@ -83,7 +85,7 @@ export async function create<T extends Project | Branch>(commandData: ParsedArgs
     if (!project) {
       throw new VersionRegisterError(`Not found project with id ${commandData.projectId}`);
     } else {
-      const newBranch = project.newBranch(commandData.branchName, commandData.fromBranch);
+      const newBranch = project.newBranch(commandData.branchName, commandData.fromBranch, commandData.preRelease);
       await registry.save();
       if (isActiveTagging()) {
         await sendTag(project, newBranch);
@@ -126,18 +128,16 @@ function isActiveTagging() {
 }
 
 async function sendTag(project: Project, branch: Branch) {
-  if (!project.gitlabProjectId) {
-    throw new VersionRegisterError(
-      `gitlabSecret was found but gitlabProjectId is
-       not set for project ${project.name}`
-    );
-  }
   const tagService = new GitlabTagService(config.gitlabApiURI, config.gitlabSecret);
   if (Loggers.serviceLogger) {
     if (!Loggers.serviceLogger.isReady) {
       await Loggers.serviceLogger.initialize();
     }
     await tagService.setLogger(Loggers.serviceLogger);
+  }
+  if (!project.gitlabProjectId) {
+    tagService.writeLog(`Gitlab project id is not set for Project ${project.name}, skip tagging.`);
+    return
   }
   await tagService.create({
     id: project.gitlabProjectId,
