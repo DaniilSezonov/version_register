@@ -39,13 +39,13 @@ export async function update(commandData: ParsedArgs): Promise<ProjectRegistry> 
       }
       const newVersion = project.update(updateType, branch.id);
       console.log(newVersion.toString());
+      if (isActiveTagging()) {
+        await sendTag(project, branch);
+      }
     } else if (branch && commandData.preRelease) {
       branch.preReleaseTag = commandData.preRelease;
     } else {
       throw new VersionRegisterError("Branch does not exists");
-    }
-    if (isActiveTagging()) {
-      await sendTag(project, branch);
     }
   } else if (commandData.gitlabId) {
     project.gitlabProjectId = commandData.gitlabId;
