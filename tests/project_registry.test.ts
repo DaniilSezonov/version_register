@@ -18,12 +18,35 @@ describe('Project Model', () => {
         }
       }],
     });
+    let prevVersion = initVersion;
     newProject.update(UpdateType.Path, branchName);
-    expect(newProject.getBranch(branchName)?.version.path).toEqual(initVersion[2] + 1)
-    newProject.update(UpdateType.Minor, branchName)
-    expect(newProject.getBranch(branchName)?.version.minor).toEqual(initVersion[1] + 1)
+    let branch = newProject.getBranch(branchName);
+    if (branch) {
+      expect(branch.version.path).toEqual(initVersion[2] + 1);
+      expect(branch.previousVersion).toEqual(prevVersion);
+      prevVersion = [branch.version.major, branch.version.minor, branch.version.path];
+    } else {
+      expect(true).toEqual(false);
+    }
+
+    newProject.update(UpdateType.Minor, branchName);
+    branch = newProject.getBranch(branchName);
+    if (branch) {
+      expect(branch.version.minor).toEqual(initVersion[1] + 1);
+      expect(branch.previousVersion).toEqual(prevVersion);
+      prevVersion = [branch.version.major, branch.version.minor, branch.version.path];
+    } else {
+      expect(true).toEqual(false);
+    }
+
     newProject.update(UpdateType.Major, branchName);
-    expect(newProject.getBranch(branchName)?.version.major).toEqual(initVersion[0] + 1)
+    branch = newProject.getBranch(branchName);
+    if (branch) {
+      expect(branch.version.major).toEqual(initVersion[0] + 1);
+      expect(branch.previousVersion).toEqual(prevVersion);
+    } else {
+      expect(true).toEqual(false);
+    }
   });
   test("Drop lower versions after update", () => {
     const initVersion: [number, number, number] = [1, 0, 0];
@@ -53,25 +76,38 @@ describe("Registry", () => {
   test('Save/Load', async () => {
     const initVersion: [number, number, number] = [1, 0, 0];
     const branchId = "testbranchid";
+    const branchName = "test-branch";
+    const gitlabProjectId = "GITLAB_PROJECT_ID";
+    const preReleaseTag = "release";
     const registry = new ProjectRegistry();
     await registry.initialize();
     const newProject = new Project({
       name: "Test",
+      gitlabProjectId: gitlabProjectId,
       branches: [{
         id: branchId,
-        name: "testBranch",
+        name: branchName,
+        preReleaseTag: preReleaseTag,
         version: {
           value: initVersion,
           date: new Date().toJSON()
         }
       }],
     });
-    registry.add(newProject)
+    registry.add(newProject);
     expect(registry.getById(newProject.id)).toBeInstanceOf(Project);
-    await registry.save()
+    await registry.save();
     const newRegistry = new ProjectRegistry();
     await newRegistry.initialize();
-    expect(newRegistry.getById(newProject.id)).toBeInstanceOf(Project);
+    const loadedProject = newRegistry.getById(newProject.id);
+    if (!loadedProject) {
+      expect(true).toEqual(false);
+    } else {
+      expect(loadedProject).toBeInstanceOf(Project);
+      expect(loadedProject.gitlabProjectId).toEqual(gitlabProjectId);
+      expect(loadedProject.getBranch(branchName)?.preReleaseTag).toEqual(preReleaseTag);
+      expect(loadedProject.getBranch(branchName)?.name).toEqual(branchName);
+    }
   });
   afterAll(() => {
     fs.rmdirSync(config.dataDir, {recursive: true});

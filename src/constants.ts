@@ -18,5 +18,5 @@ export const defaultConfig = {
   gitlabApiURI: "https://gitlab.com/api/v4/",
   gitlabSecret: "",
   gitlabProjectId: "",
-}
+};
 export const applicationVersion = `${process.env.npm_package_version}`;
