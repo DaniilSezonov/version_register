@@ -1,7 +1,7 @@
 import {APIAttrs, RestAPIService} from "./service";
 import {ServiceError} from "../errors";
 import {LoggerError} from "./logger";
-import {AxiosError} from "axios";
+import {AxiosError, AxiosResponse} from "axios";
 
 export interface GitlabTagData {
 	name: string;
@@ -36,12 +36,12 @@ interface GitlabTagAttrs extends APIAttrs {
 	release_description?: string, //Add release notes to the Git tag and store it in the GitLab database
 }
 
-export default class GitlabTagService extends RestAPIService {
-	async create<GitlabTagData>(attrs: GitlabTagAttrs) {
+export default class GitlabTagService extends RestAPIService<GitlabTagData> {
+	async create(attrs: GitlabTagAttrs) {
 		const path = this.getPath(attrs.id);
-		let response;
+		let response: AxiosResponse<GitlabTagData>;
 		try {
-			response = await this.requester.post<GitlabTagData>(path, null, {params: attrs});
+			response = await this.requester.post<GitlabTagData>(path, {}, {params: attrs});
 		} catch (error) {
 			const axiosError = <AxiosError<GitlabTagData>>error;
 			await this.writeLog(`
@@ -50,7 +50,7 @@ export default class GitlabTagService extends RestAPIService {
 			`);
 			throw new ServiceError(axiosError.message, "Gitlab tag service");
 		}
-		await this.writeLog(`${response.status}: ${response.statusText}`);
+		await this.writeLog(`${response.status}: ${response.statusText}: ${response.data.name}`);
 		return response;
 	}
 	async writeLog(message: string): Promise<void> {

@@ -4,14 +4,18 @@ import Logger from "./logger";
 export type APIResponse<R> = Promise<AxiosResponse<R>>;
 export type APIAttrs = any;
 
-export interface RestAPIService {
-	create?<R>(attrs: APIAttrs): APIResponse<R>;
-	update?<R>(attrs: APIAttrs): APIResponse<R>;
-	read?<R>(attrs: APIAttrs): APIResponse<R>;
-	delete?<R>(attrs: APIAttrs): APIResponse<R>;
+export interface RestAPIService<R> {
+	create?(attrs: APIAttrs): APIResponse<R>;
+	create?<N>(attrs: APIAttrs): APIResponse<N>;
+	update?(attrs: APIAttrs): APIResponse<R>;
+	update?<N>(attrs: APIAttrs): APIResponse<N>;
+	read?(attrs: APIAttrs): APIResponse<R>;
+	read?<N>(attrs: APIAttrs): APIResponse<N>;
+	delete?(attrs: APIAttrs): APIResponse<R>;
+	delete?<N>(attrs: APIAttrs): APIResponse<N>;
 }
 
-export class RestAPIService {
+export class RestAPIService<R> {
 	public logger?: Logger;
 	protected requester: AxiosInstance;
 	protected path?: string;

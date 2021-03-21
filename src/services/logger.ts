@@ -16,7 +16,7 @@ class Logger {
 	public isReady = false;
 	public messagePool: string[] = [];
 
-	async initialize() {
+	async initialize(): Promise<void> {
 		try {
 			this.fileHandle = await fs.open(this.logfile, "a");
 			await fs.access(this.logfile);
@@ -28,7 +28,7 @@ class Logger {
 			throw new LoggerError(error);
 		}
 	}
-	public async writeLog(msg: string) {
+	public async writeLog(msg: string): Promise<void> {
 		const formattedMsg = this.formatMsg(msg);
 		if (this.isReady && this.fileHandle) {
 			await this.fileHandle.write(formattedMsg);
@@ -38,9 +38,10 @@ class Logger {
 	}
 	protected formatMsg(msg: string): string {
 		const date = new Date();
-		return `${date.toLocaleTimeString()}: ${msg} \n`
+		return `${date.toLocaleTimeString()
+		}: ${msg} \n`
 	}
-	public async bye() {
+	public async bye(): Promise<void> {
 		if (this.fileHandle) {
 			await this.fileHandle.close();
 		}
