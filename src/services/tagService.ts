@@ -50,7 +50,7 @@ export default class GitlabTagService extends RestAPIService<GitlabTagData> {
 			`);
 			throw new ServiceError(axiosError.message, "Gitlab tag service");
 		}
-		await this.writeLog(`${response.status}: ${response.statusText}: ${response.data.name}`);
+		await this.writeLog(`${response.status}: ${response.statusText}`);
 		return response;
 	}
 	async writeLog(message: string): Promise<void> {
